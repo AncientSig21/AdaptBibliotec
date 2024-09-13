@@ -3,6 +3,7 @@ import { FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { VariantProduct } from '../../interfaces';
 import { formatPrice } from '../../helpers';
+import { Tag } from '../shared/Tag';
 
 interface Props {
 	img: string;
@@ -55,7 +56,9 @@ export const CardProduct = ({
 
 			<div className='flex flex-col gap-1 items-center'>
 				<p className='text-[15px] font-medium'>{name}</p>
-				<p className='text-[15px] font-medium'>{formatPrice(price)}</p>
+				<p className='text-[15px] font-medium'>
+					{formatPrice(price)}
+				</p>
 
 				<div className='flex gap-3'>
 					{colors.map(color => (
@@ -75,7 +78,7 @@ export const CardProduct = ({
 			</div>
 
 			<div className='absolute top-2 left-2'>
-				{stock === 0 && <span>Agotado</span>}
+				{stock === 0 && <Tag contentTag='agotado' />}
 			</div>
 		</div>
 	);
