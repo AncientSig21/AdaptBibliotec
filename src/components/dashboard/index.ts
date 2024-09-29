@@ -1,6 +1,7 @@
 export * from './Sidebar';
 
 // ORDENES
+export * from './orders/TableOrdersAdmin';
 
 // PRODUCTOS
 export * from './products/TableProduct';
@@ -11,4 +12,4 @@ export * from './products/InputForm';
 export * from './products/FeaturesInput';
 export * from './products/VariantsInput';
 export * from './products/UploaderImages';
-export * from "./products/Editor"
+export * from './products/Editor';
