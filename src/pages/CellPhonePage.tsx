@@ -80,7 +80,7 @@ export const CellPhonePage = () => {
 		if (!selectedColor && availableColors.length > 0) {
 			setSelectedColor(availableColors[0]);
 		}
-	}, [availableColors, selectedColor]);
+	}, [availableColors, selectedColor, product]);
 
 	// Actualizar el almacenamiento seleccionado cuando cambia el color
 	useEffect(() => {
