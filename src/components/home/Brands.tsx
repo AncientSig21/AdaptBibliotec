@@ -29,11 +29,10 @@ const brands = [
 export const Brands = () => {
 	return (
 		<div className='flex flex-col items-center gap-3 pt-16 pb-12'>
-			<h2 className='font-bold text-2xl'>Marcas que disponemos</h2>
+			<h2 className='font-bold text-2xl'>Libros para todas las especialidades</h2>
 
 			<p className='w-2/3 text-center text-sm md:text-base'>
-				Tenemos lo más moderno en tecnología y los últimos modelos de
-				celulares disponibles
+				Tenemos mucha informacion en nuestros libros que pueden ser de ayuda
 			</p>
 
 			<div className='grid grid-cols-3 gap-6 mt-8 items-center md:grid-cols-6'>

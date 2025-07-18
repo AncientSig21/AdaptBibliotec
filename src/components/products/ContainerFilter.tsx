@@ -1,12 +1,13 @@
 import { Separator } from '../shared/Separator';
 
 const availableBrands = [
-	'Samsung',
-	'Apple',
-	'Huawei',
-	'Xiaomi',
-	'Realme',
-	'Honor',
+	'Arquitectura',
+	'Ingenieria Civil',
+	'Ingenieria Electrica',
+	'Ingenieria Electronica',
+	'Ingenieria Industrial',
+	'Ingenieria en Mantenimiento Mecanico',
+	'Ingenieria de Sistemas',
 ];
 
 export const ContainerFilter = () => {
@@ -18,7 +19,7 @@ export const ContainerFilter = () => {
 			<Separator />
 
 			<div className='flex flex-col gap-3'>
-				<h3 className='text-lg font-medium text-black'>Marcas</h3>
+				<h3 className='text-lg font-medium text-black'>Carreras</h3>
 
 				<div className='flex flex-col gap-2'>
 					{availableBrands.map(brand => (

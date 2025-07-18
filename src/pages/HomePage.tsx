@@ -1,28 +1,27 @@
 import { Brands } from '../components/home/Brands';
 import { FeatureGrid } from '../components/home/FeatureGrid';
-import { ProductGrid } from '../components/home/ProductGrid';
+import { BookGrid } from '../components/home/BookGrid';
 import {
-	popularCelulares,
-	recentCelulares,
+	allBooks,
 } from '../data/initialData';
-import { prepareProducts } from '../helpers';
+import { prepareBooks } from '../helpers';
 
 export const HomePage = () => {
-	const preparedRecentProducts = prepareProducts(recentCelulares);
-	const preparedPopularProducts = prepareProducts(popularCelulares);
+	const preparedRecentProducts = prepareBooks(allBooks);
+	const preparedPopularProducts = prepareBooks(allBooks);
 
 	return (
 		<div>
 			<FeatureGrid />
 
-			<ProductGrid
-				title='Nuevos Productos'
-				products={preparedRecentProducts}
+			<BookGrid
+				title='Nuevos Libros'
+				books={preparedRecentProducts}
 			/>
 
-			<ProductGrid
-				title='Productos Destacados'
-				products={preparedPopularProducts}
+			<BookGrid
+				title='Libros Destacados'
+				books={preparedPopularProducts}
 			/>
 
 			<Brands />
