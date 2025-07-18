@@ -11,14 +11,9 @@ export const prepareBooks = (rawBooks: any[]): PreparedBook[] => {
 		coverImage: book.coverImage ?? book.images?.[0] ?? '',
 		created_at: book.created_at,
 		price: book.price ?? 0,
-	}));
-};
 
-export const formatPrice = (price: number) => {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(price);
+		// Nuevos campos:
+		type: book.type ?? 'Físico', // valor por defecto si falta
+		speciality: book.speciality ?? 'Ingeniería en Sistemas', // valor por defecto si falta
+	}));
 };

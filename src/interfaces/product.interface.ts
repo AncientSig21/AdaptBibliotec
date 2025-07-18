@@ -1,45 +1,21 @@
 import { JSONContent } from '@tiptap/react';
 
-export interface Color {
-	name: string;
-	color: string;
-	price: number;
-}
-
-export interface VariantProduct {
+export interface PreparedBook {
 	id: string;
-	stock: number;
-	price: number;
-	storage: string;
-	color: string;
-	color_name: string;
-}
-
-export interface Product {
-	id: string;
-	name: string;
-	brand: string;
+	title: string;
+	author: string;
 	slug: string;
-	features: string[];
+	features: string[]; // Ej: ['Filosofía', 'Infantil']
 	description: JSONContent;
-	images: string[];
+	coverImage: string; // Portada
 	created_at: string;
-	variants: VariantProduct[];
+	price?: number; // Opcional si mostrarás "Gratis" o algún precio simbólico
+
+	// Nuevos campos:
+	type: 'Físico' | 'Virtual' | 'Tesis' | (string & {});
+	speciality:string;
 }
 
-export interface PreparedProducts {
-	id: string;
-	name: string;
-	brand: string;
-	slug: string;
-	features: string[];
-	description: JSONContent;
-	images: string[];
-	created_at: string;
-	price: number;
-	colors: {
-		name: string;
-		color: string;
-	}[];
-	variants: VariantProduct[];
+export interface TesisBook extends PreparedBook {
+  type: 'Tesis';
 }

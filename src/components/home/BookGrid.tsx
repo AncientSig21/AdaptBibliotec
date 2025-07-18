@@ -22,6 +22,8 @@ export const BookGrid = ({ title, books }: Props) => {
 						price={book.price ?? 0}
 						img={book.coverImage}
 						slug={book.slug}
+						speciality={book.speciality}
+						type={book.type}
 					/>
 				))}
 			</div>

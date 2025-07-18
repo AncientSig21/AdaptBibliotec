@@ -26,6 +26,8 @@ export const BookPages = () => {
 								price={book.price}
 								img={book.coverImage}
 								slug={book.slug}
+								speciality={book.speciality}
+								type = {book.type}
 							/>
 						))}
 					</div>

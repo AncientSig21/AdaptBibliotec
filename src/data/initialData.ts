@@ -1,97 +1,157 @@
 export const allBooks = [
   {
-    id: '1',
-    title: 'El Principito',
-    author: 'Antoine de Saint-Exupéry',
-    slug: 'el-principito',
-    features: ['Filosofía', 'Infantil'],
-    description: {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [{ type: 'text', text: 'Un clásico sobre la amistad y el amor.' }],
-        },
-      ],
-    },
-    coverImage: 'https://images-na.ssl-images-amazon.com/images/I/81xQZt5OG6L.jpg',
-    created_at: '2024-03-20T18:45:00Z',
-    price: 0,
-  },
-  {
-    id: '2',
-    title: 'Cien años de soledad',
-    author: 'Gabriel García Márquez',
-    slug: 'cien-anos-de-soledad',
-    features: ['Realismo mágico', 'Novela'],
-    description: {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [{ type: 'text', text: 'Una obra maestra de la literatura latinoamericana.' }],
-        },
-      ],
-    },
-    coverImage: 'https://m.media-amazon.com/images/I/71hsfHzsD6L.jpg',
-    created_at: '2024-04-10T14:20:00Z',
-    price: 9.99,
-  },
-  {
-    id: '3',
-    title: '1984',
-    author: 'George Orwell',
-    slug: '1984',
-    features: ['Distopía', 'Política'],
-    description: {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [{ type: 'text', text: 'Una advertencia sobre los peligros del totalitarismo.' }],
-        },
-      ],
-    },
-    coverImage: 'https://images-na.ssl-images-amazon.com/images/I/71kxa1-0mfL.jpg',
-    created_at: '2024-05-05T12:00:00Z',
-    price: 7.50,
-  },
-  {
-    id: '4',
-    title: 'Don Quijote de la Mancha',
-    author: 'Miguel de Cervantes',
-    slug: 'don-quijote-de-la-mancha',
-    features: ['Clásico', 'Aventura'],
-    description: {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [{ type: 'text', text: 'Una historia entrañable sobre los sueños y la locura.' }],
-        },
-      ],
-    },
-    coverImage: 'https://m.media-amazon.com/images/I/71VnOqk8HQL.jpg',
-    created_at: '2024-06-01T09:00:00Z',
-    price: 0,
-  },
-  {
     id: '5',
-    title: 'Fahrenheit 451',
-    author: 'Ray Bradbury',
-    slug: 'fahrenheit-451',
-    features: ['Ciencia ficción', 'Censura'],
+    title: 'Circuitos Eléctricos I',
+    author: 'Charles K. Alexander',
+    slug: 'circuitos-electricos-1',
+    features: ['Ingeniería', 'Teoría', 'Ejercicios'],
+    description: {
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Fundamentos de circuitos eléctricos y técnicas de análisis.',
+            },
+          ],
+        },
+      ],
+    },
+    coverImage: 'https://m.media-amazon.com/images/I/81RYoEDrZBL.jpg',
+    created_at: '2024-07-01T08:30:00Z',
+    price: 19.99,
+    type: 'Físico',
+    speciality: 'Ingeniería Electrónica',
+  },
+  {
+    id: '6',
+    title: 'Mecánica de Materiales',
+    author: 'James M. Gere',
+    slug: 'mecanica-de-materiales',
+    features: ['Mecánica', 'Estructuras', 'Materiales'],
+    description: {
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Análisis de esfuerzos y deformaciones en materiales estructurales.',
+            },
+          ],
+        },
+      ],
+    },
+    coverImage: 'https://m.media-amazon.com/images/I/81OIkUrnKGL.jpg',
+    created_at: '2024-07-02T11:15:00Z',
+    price: 25.5,
+    type: 'Virtual',
+    speciality: 'Ingeniería Civil',
+  },
+  {
+    id: '7',
+    title: 'Tesis sobre optimización energética en plantas industriales',
+    author: 'Luis Torres',
+    slug: 'tesis-optimizacion-energetica',
+    features: ['Investigación', 'Energía', 'Tesis'],
     description: {
       type: 'doc',
       content: [
         {
           type: 'paragraph',
-          content: [{ type: 'text', text: 'Una crítica al autoritarismo y a la sociedad consumista.' }],
+          content: [
+            {
+              type: 'text',
+              text: 'Propuesta de ahorro energético en procesos industriales de gran escala.',
+            },
+          ],
         },
       ],
     },
-    coverImage: 'https://m.media-amazon.com/images/I/71OFqSRFDgL.jpg',
-    created_at: '2024-07-01T15:30:00Z',
-    price: 6.25,
+    coverImage: 'https://via.placeholder.com/300x450.png?text=Tesis+Energía',
+    created_at: '2024-07-03T10:00:00Z',
+    price: 0,
+    type: 'Tesis',
+    speciality: 'Ingeniería Industrial',
+  },
+  {
+    id: '8',
+    title: 'Tesis sobre inteligencia artificial en redes eléctricas',
+    author: 'María González',
+    slug: 'tesis-ia-redes-electricas',
+    features: ['IA', 'Redes Eléctricas', 'Investigación'],
+    description: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Aplicación de modelos de inteligencia artificial para optimizar la distribución eléctrica en sistemas urbanos.',
+            },
+          ],
+        },
+      ],
+    },
+    coverImage: 'https://via.placeholder.com/300x450.png?text=Tesis+IA+Redes',
+    created_at: '2024-07-04T09:00:00Z',
+    price: 0,
+    type: 'Tesis',
+    speciality: 'Ingeniería Eléctrica',
+  },
+  {
+    id: '9',
+    title: 'Tesis sobre monitoreo predictivo en mantenimiento industrial',
+    author: 'Carlos Méndez',
+    slug: 'tesis-monitoreo-mantenimiento',
+    features: ['Mantenimiento', 'Predicción', 'Tesis'],
+    description: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Sistema de monitoreo predictivo basado en sensores para optimizar el mantenimiento en plantas industriales.',
+            },
+          ],
+        },
+      ],
+    },
+    coverImage: 'https://via.placeholder.com/300x450.png?text=Tesis+Mantenimiento',
+    created_at: '2024-07-05T13:20:00Z',
+    price: 0,
+    type: 'Tesis',
+    speciality: 'Ingeniería en Mantenimiento Mecánico',
+  },
+  {
+    id: '10',
+    title: 'Tesis sobre ciberseguridad en sistemas SCADA',
+    author: 'Andrea Rivas',
+    slug: 'tesis-ciberseguridad-scada',
+    features: ['SCADA', 'Ciberseguridad', 'Industrial'],
+    description: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Propuesta de protocolo de seguridad avanzada para sistemas de control industrial SCADA.',
+            },
+          ],
+        },
+      ],
+    },
+    coverImage: 'https://via.placeholder.com/300x450.png?text=Tesis+SCADA',
+    created_at: '2024-07-06T10:40:00Z',
+    price: 0,
+    type: 'Tesis',
+    speciality: 'Ingeniería en Sistemas',
   },
 ];
+

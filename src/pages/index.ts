@@ -1,3 +1,3 @@
 export * from './HomePage';
 export * from './BookPages';
-export * from './AboutPage';
+export * from './TesisPages';

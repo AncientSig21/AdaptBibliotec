@@ -18,8 +18,8 @@ export const navbarLinks = [
 	},
 	{
 		id: 3,
-		title: 'Sobre Nosotros',
-		href: '/nosotros',
+		title: 'Tesis',
+		href: '/tesis',
 	},
 ];
 
