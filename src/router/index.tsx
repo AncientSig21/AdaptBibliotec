@@ -7,6 +7,8 @@ import { TesisBook } from '../interfaces';
 
 const onlyTesis = allBooks.filter(book => book.type === 'Tesis') as TesisBook[];
 
+const onlyBooks = allBooks.filter(book => book.type === 'Fisico | Virtual');
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -18,7 +20,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'libros',
-        element: <BookPages />,
+        element: <BookPages book = {onlyBooks} />,
       },
       {
         path: 'tesis',
