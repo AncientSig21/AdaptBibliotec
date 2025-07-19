@@ -7,6 +7,11 @@ interface Props {
 }
 
 export const BookGrid = ({ title, books }: Props) => {
+	// Filtrar solo libros físicos o virtuales
+	const filteredBooks = books.filter(
+		book => book.type === 'Físico' || book.type === 'Virtual'
+	);
+
 	return (
 		<div className='my-32'>
 			<h2 className='text-3xl font-semibold text-center mb-8 md:text-4xl lg:text-5xl'>
@@ -14,7 +19,7 @@ export const BookGrid = ({ title, books }: Props) => {
 			</h2>
 
 			<div className='grid grid-cols-1 gap-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4'>
-				{books.map(book => (
+				{filteredBooks.map(book => (
 					<CardBook
 						key={book.id}
 						title={book.title}

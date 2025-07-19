@@ -1,50 +1,51 @@
-import { BiWorld } from 'react-icons/bi';
-import { FaHammer } from 'react-icons/fa6';
-import { HiMiniReceiptRefund } from 'react-icons/hi2';
-import { MdLocalShipping } from 'react-icons/md';
+import { CiBookmark } from 'react-icons/ci';
+import { FaBook } from 'react-icons/fa6';
+import { GoDownload } from 'react-icons/go';
+import { GrWorkshop } from 'react-icons/gr';
+
+
 
 export const FeatureGrid = () => {
 	return (
 		<div className='grid grid-cols-2 gap-8 mt-6 mb-16 lg:grid-cols-4 lg:gap-5'>
 			<div className='flex items-center gap-6'>
-				<MdLocalShipping size={40} className='text-slate-600' />
+				<GoDownload size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Envío gratis</p>
-					<p className='text-sm'>En todos nuestros productos</p>
+					<p className='font-semibold'>Descarga sin limites</p>
+					<p className='text-sm'>En la mayoria de nuestros libros</p>
 				</div>
 			</div>
 
 			<div className='flex items-center gap-6'>
-				<HiMiniReceiptRefund size={40} className='text-slate-600' />
+				<FaBook size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Devoluciones</p>
+					<p className='font-semibold'>Variedad de libros</p>
 					<p className='text-sm'>
-						Devuelve el equipo si no te satisface la compra dentro de
-						72 horas
+						Para todas las especialidades de nuestra institucion
 					</p>
 				</div>
 			</div>
 
 			<div className='flex items-center gap-6'>
-				<FaHammer size={40} className='text-slate-600' />
+				<CiBookmark size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Soporte 24/7</p>
+					<p className='font-semibold'>Reservacion</p>
 					<p className='text-sm'>
-						Soporte técnico en cualquier momento
+						puedes reservar un libro para su disfrute
 					</p>
 				</div>
 			</div>
 
 			<div className='flex items-center gap-6'>
-				<BiWorld size={40} className='text-slate-600' />
+				<GrWorkshop size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Garantía</p>
+					<p className='font-semibold'>Tesis</p>
 					<p className='text-sm'>
-						Garantía de 1 año en todos los equipos
+						Previsualizacion de tesis
 					</p>
 				</div>
 			</div>

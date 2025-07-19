@@ -1,47 +1,67 @@
 const brands = [
-	{
-		image: '/img/brands/apple-logo.webp',
-		alt: 'Apple',
-	},
-	{
-		image: '/img/brands/samsung-logo.webp',
-		alt: 'Samsung',
-	},
-	{
-		image: '/img/brands/xiaomi-logo.webp',
-		alt: 'Xiaomi',
-	},
-	{
-		image: '/img/brands/realme-logo.webp',
-		alt: 'Realme',
-	},
-	{
-		image: '/img/brands/huawei-logo.png',
-		alt: 'Huawei',
-	},
-
-	{
-		image: '/img/brands/honor-logo.png',
-		alt: 'Honor',
-	},
+  {
+    image: '/img/brands/architecture-building-castle-svgrepo-com.svg',
+    alt: 'Arquitectura',
+    label: 'Arquitectura',
+  },
+  {
+    image: '/img/brands/cap-civil-engineer-construction-svgrepo-com.svg',
+    alt: 'Ingeniería Civil',
+    label: 'Ingeniería Civil',
+  },
+  {
+    image: '/img/brands/factory-svgrepo-com.svg',
+    alt: 'Ingeniería Industrial',
+    label: 'Ingenieria Industrial',
+  },
+  {
+    image: '/img/brands/programming-monitor-svgrepo-com.svg',
+    alt: 'Ingeniería De Sistemas',
+    label: 'Ingenieria De Sistemas',
+  },
+  {
+    image: '/img/brands/tech-circuit-svgrepo-com.svg',
+    alt: 'Ingeniería Electrónica',
+    label: 'Ingenieria Electrónica',
+  },
+  {
+    image: '/img/brands/toolbox-svgrepo-com.svg',
+    alt: 'Mantenimiento Mecánico',
+    label: 'Ingenierie En Mantenimiento Mecánico',
+  },
+  {
+    image: '/img/brands/voltmeter-svgrepo-com.svg',
+    alt: 'Ingeniería Eléctrica',
+    label: 'Ingenieria Eléctrica',
+  },
 ];
 
 export const Brands = () => {
-	return (
-		<div className='flex flex-col items-center gap-3 pt-16 pb-12'>
-			<h2 className='font-bold text-2xl'>Libros para todas las especialidades</h2>
+  return (
+    <div className="flex flex-col items-center gap-3 pt-16 pb-12">
+      <h2 className="font-bold text-2xl">Libros para todas las especialidades</h2>
 
-			<p className='w-2/3 text-center text-sm md:text-base'>
-				Tenemos mucha informacion en nuestros libros que pueden ser de ayuda
-			</p>
+      <p className="w-2/3 text-center text-sm md:text-base">
+        Tenemos mucha información en nuestros libros que pueden ser de ayuda
+      </p>
 
-			<div className='grid grid-cols-3 gap-6 mt-8 items-center md:grid-cols-6'>
-				{brands.map((brand, index) => (
-					<div key={index}>
-						<img src={brand.image} alt={brand.alt} />
-					</div>
-				))}
-			</div>
-		</div>
-	);
+      <div className="flex flex-wrap justify-center gap-6 mt-8 max-w-full">
+        {brands.map((brand, index) => (
+          <div
+            key={index}
+            className="w-20 flex flex-col items-center justify-center"
+          >
+            <img
+              src={brand.image}
+              alt={brand.alt}
+              className="max-w-full max-h-16 object-contain"
+            />
+            <span className="mt-2 text-center text-sm font-medium">
+              {brand.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };

@@ -14,6 +14,8 @@ export const HomePage = () => {
 		<div>
 			<FeatureGrid />
 
+			<Brands />
+
 			<BookGrid
 				title='Nuevos Libros'
 				books={preparedRecentProducts}
@@ -23,8 +25,6 @@ export const HomePage = () => {
 				title='Libros Destacados'
 				books={preparedPopularProducts}
 			/>
-
-			<Brands />
 		</div>
 	);
 };

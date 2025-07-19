@@ -4,7 +4,13 @@ import { allBooks } from '../data/initialData';
 import { prepareBooks } from '../helpers';
 
 export const BookPages = () => {
-	const preparedBooks = prepareBooks(allBooks); // ✅ nombre en minúscula y correcto
+	// Preparamos los libros
+	const preparedBooks = prepareBooks(allBooks);
+
+	// Filtramos solo los de tipo Físico o Virtual
+	const filteredBooks = preparedBooks.filter(
+		book => book.type === 'Físico' || book.type === 'Virtual'
+	);
 
 	return (
 		<>
@@ -18,7 +24,7 @@ export const BookPages = () => {
 
 				<div className='col-span-2 lg:col-span-2 xl:col-span-4 flex flex-col gap-12'>
 					<div className='grid grid-cols-2 gap-3 gap-y-10 xl:grid-cols-4'>
-						{preparedBooks.map(book => (
+						{filteredBooks.map(book => (
 							<CardBook
 								key={book.id}
 								title={book.title}
@@ -27,7 +33,7 @@ export const BookPages = () => {
 								img={book.coverImage}
 								slug={book.slug}
 								speciality={book.speciality}
-								type = {book.type}
+								type={book.type}
 							/>
 						))}
 					</div>
