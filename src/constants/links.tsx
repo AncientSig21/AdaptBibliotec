@@ -5,6 +5,7 @@ import {
 	FaInstagram,
 	FaTiktok,
 	FaXTwitter,
+	FaBook,
 } from 'react-icons/fa6';
 
 export const navbarLinks = [
@@ -15,11 +16,16 @@ export const navbarLinks = [
 	},
 	{
 		id: 2,
+		title: 'Biblioteca',
+		href: '/libros',
+	},
+	{
+		id: 3,
 		title: 'Celulares',
 		href: '/celulares',
 	},
 	{
-		id: 3,
+		id: 4,
 		title: 'Sobre Nosotros',
 		href: '/nosotros',
 	},
@@ -55,12 +61,18 @@ export const socialLinks = [
 export const dashboardLinks = [
 	{
 		id: 1,
+		title: 'Libros',
+		href: '/dashboard/libros',
+		icon: <FaBook size={25} />,
+	},
+	{
+		id: 2,
 		title: 'Productos',
 		href: '/dashboard/productos',
 		icon: <FaBoxOpen size={25} />,
 	},
 	{
-		id: 2,
+		id: 3,
 		title: 'Ordenes',
 		href: '/dashboard/ordenes',
 		icon: <FaCartShopping size={25} />,

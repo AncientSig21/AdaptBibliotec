@@ -5,6 +5,9 @@ import {
 	CellPhonesPage,
 	AboutPage,
 	CellPhonePage,
+	BooksPage,
+	BookPage,
+	TestPage,
 	LoginPage,
 	RegisterPage,
 	OrdersUserPage,
@@ -16,6 +19,9 @@ import {
 	DashboardProductSlugPage,
 	DashboardOrdersPage,
 	DashboardOrderPage,
+	DashboardBooksPage,
+	DashboardNewBookPage,
+	DashboardBookSlugPage,
 } from '../pages';
 import { ClientLayout } from '../layouts/ClientLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
@@ -36,6 +42,18 @@ export const router = createBrowserRouter([
 			{
 				path: 'celulares/:slug',
 				element: <CellPhonePage />,
+			},
+			{
+				path: 'libros',
+				element: <BooksPage />,
+			},
+			{
+				path: 'libros/:id',
+				element: <BookPage />,
+			},
+			{
+				path: 'test',
+				element: <TestPage />,
 			},
 			{
 				path: 'nosotros',
@@ -77,34 +95,46 @@ export const router = createBrowserRouter([
 		path: '/checkout/:id/thank-you',
 		element: <ThankyouPage />,
 	},
-	{
-		path: '/dashboard',
-		element: <DashboardLayout />,
-		children: [
 			{
-				index: true,
-				element: <Navigate to='/dashboard/productos' />,
-			},
-			{
-				path: 'productos',
-				element: <DashboardProductsPage />,
-			},
-			{
-				path: 'productos/new',
-				element: <DashboardNewProductPage />,
-			},
-			{
-				path: 'productos/editar/:slug',
-				element: <DashboardProductSlugPage />,
-			},
-			{
-				path: 'ordenes',
-				element: <DashboardOrdersPage />,
-			},
-			{
-				path: 'ordenes/:id',
-				element: <DashboardOrderPage />,
-			},
-		],
-	},
+			path: '/dashboard',
+			element: <DashboardLayout />,
+			children: [
+				{
+					index: true,
+					element: <Navigate to='/dashboard/libros' />,
+				},
+				{
+					path: 'libros',
+					element: <DashboardBooksPage />,
+				},
+				{
+					path: 'libros/new',
+					element: <DashboardNewBookPage />,
+				},
+				{
+					path: 'libros/:id',
+					element: <DashboardBookSlugPage />,
+				},
+				{
+					path: 'productos',
+					element: <DashboardProductsPage />,
+				},
+				{
+					path: 'productos/new',
+					element: <DashboardNewProductPage />,
+				},
+				{
+					path: 'productos/editar/:slug',
+					element: <DashboardProductSlugPage />,
+				},
+				{
+					path: 'ordenes',
+					element: <DashboardOrdersPage />,
+				},
+				{
+					path: 'ordenes/:id',
+					element: <DashboardOrderPage />,
+				},
+			],
+		},
 ]);

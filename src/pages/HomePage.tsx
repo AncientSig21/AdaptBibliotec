@@ -1,36 +1,32 @@
 import { Brands } from '../components/home/Brands';
 import { FeatureGrid } from '../components/home/FeatureGrid';
-import { ProductGrid } from '../components/home/ProductGrid';
-import { ProductGridSkeleton } from '../components/skeletons/ProductGridSkeleton';
-import { prepareProducts } from '../helpers';
-import { useHomeProducts } from '../hooks';
+import { BookGrid } from '../components/home/BookGrid';
+import { BookGridSkeleton } from '../components/skeletons/BookGridSkeleton';
+import { useHomeBooks } from '../hooks';
 
 export const HomePage = () => {
-	const { recentProducts, popularProducts, isLoading } =
-		useHomeProducts();
-
-	const preparedRecentProducts = prepareProducts(recentProducts);
-	const preparedPopularProducts = prepareProducts(popularProducts);
+	const { recentBooks, popularBooks, isLoading } =
+		useHomeBooks();
 
 	return (
 		<div>
 			<FeatureGrid />
 
 			{isLoading ? (
-				<ProductGridSkeleton numberOfProducts={4} />
+				<BookGridSkeleton numberOfBooks={4} />
 			) : (
-				<ProductGrid
-					title='Nuevos Productos'
-					products={preparedRecentProducts}
+				<BookGrid
+					title='Nuevos Libros'
+					books={recentBooks}
 				/>
 			)}
 
 			{isLoading ? (
-				<ProductGridSkeleton numberOfProducts={4} />
+				<BookGridSkeleton numberOfBooks={4} />
 			) : (
-				<ProductGrid
-					title='Productos Destacados'
-					products={preparedPopularProducts}
+				<BookGrid
+					title='Libros Destacados'
+					books={popularBooks}
 				/>
 			)}
 

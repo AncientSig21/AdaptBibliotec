@@ -103,3 +103,38 @@ export const productSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
+
+// Nuevos esquemas para biblioteca
+export const bookSchema = z.object({
+	titulo: z.string().min(1, 'El título del libro es obligatorio'),
+	fecha_publicacion: z.string().min(1, 'La fecha de publicación es obligatoria'),
+	sinopsis: z.string().min(10, 'La sinopsis debe tener al menos 10 caracteres'),
+	url_portada: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+	autores: z.array(z.string()).min(1, 'Debe seleccionar al menos un autor'),
+	tipo_libro: z.enum(['virtual', 'fisico', 'ambos']),
+	direccion_virtual: z.string().optional(),
+	cantidad_fisica: z.number().min(0).optional(),
+	images: z.array(z.any()).optional(),
+});
+
+export const authorSchema = z.object({
+	nombre: z.string().min(1, 'El nombre del autor es obligatorio'),
+});
+
+export const reservationSchema = z.object({
+	libro_id: z.string().min(1, 'Debe seleccionar un libro'),
+	tipo_de_libro: z.enum(['virtual', 'fisico']),
+	fecha_inicio: z.string().min(1, 'La fecha de inicio es obligatoria'),
+	fecha_fin: z.string().min(1, 'La fecha de fin es obligatoria'),
+}).refine((data) => {
+	const fechaInicio = new Date(data.fecha_inicio);
+	const fechaFin = new Date(data.fecha_fin);
+	return fechaFin > fechaInicio;
+}, {
+	message: 'La fecha de fin debe ser posterior a la fecha de inicio',
+	path: ['fecha_fin'],
+});
+
+export type BookFormValues = z.infer<typeof bookSchema>;
+export type AuthorFormValues = z.infer<typeof authorSchema>;
+export type ReservationFormValues = z.infer<typeof reservationSchema>;

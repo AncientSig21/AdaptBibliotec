@@ -1,19 +1,14 @@
 export * from './HomePage';
-export * from './CellPhonesPage';
-export * from './AboutPage';
-export * from './CellPhonePage';
 export * from './LoginPage';
 export * from './RegisterPage';
-export * from './OrdersUserPage';
+export * from './CellPhonesPage';
+export * from './CellPhonePage';
+export * from './BooksPage';
+export * from './BookPage';
+export * from './TestPage';
 export * from './CheckoutPage';
 export * from './ThankyouPage';
+export * from './OrdersUserPage';
 export * from './OrderUserPage';
-
-/* ********************************** */
-/*           DASHBOARD PAGES          */
-/* ********************************** */
-export * from './dashboard/DashboardProductsPage';
-export * from './dashboard/DashboardNewProductPage';
-export * from './dashboard/DashboardProductSlugPage';
-export * from "./dashboard/DashboardOrdersPage"
-export * from "./dashboard/DashboardOrderPage"
+export * from './AboutPage';
+export * from './dashboard';

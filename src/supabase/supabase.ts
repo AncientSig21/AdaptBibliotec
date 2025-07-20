@@ -7,267 +7,326 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      addresses: {
+      autor: {
         Row: {
-          address_line1: string
-          address_line2: string | null
-          city: string
-          country: string
-          created_at: string
-          customer_id: string | null
-          id: string
-          postal_code: string | null
-          state: string
-        }
-        Insert: {
-          address_line1: string
-          address_line2?: string | null
-          city: string
-          country?: string
-          created_at?: string
-          customer_id?: string | null
-          id?: string
-          postal_code?: string | null
-          state: string
-        }
-        Update: {
-          address_line1?: string
-          address_line2?: string | null
-          city?: string
-          country?: string
-          created_at?: string
-          customer_id?: string | null
-          id?: string
-          postal_code?: string | null
-          state?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "addresses_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      customers: {
-        Row: {
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          phone: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          full_name: string
-          id?: string
-          phone?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          phone?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "customers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          id: string
-          order_id: number
-          price: number
-          quantity: number
-          variant_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          order_id: number
-          price: number
-          quantity: number
-          variant_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          order_id?: number
-          price?: number
-          quantity?: number
-          variant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_variant_id_fkey"
-            columns: ["variant_id"]
-            isOneToOne: false
-            referencedRelation: "variants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          address_id: string
-          created_at: string
-          customer_id: string
           id: number
-          status: string
-          total_amount: number
+          nombre: string
         }
         Insert: {
-          address_id: string
-          created_at?: string
-          customer_id: string
           id?: number
-          status?: string
-          total_amount: number
+          nombre: string
         }
         Update: {
-          address_id?: string
-          created_at?: string
-          customer_id?: string
           id?: number
-          status?: string
-          total_amount?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_address_id_fkey"
-            columns: ["address_id"]
-            isOneToOne: false
-            referencedRelation: "addresses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      products: {
-        Row: {
-          brand: string
-          created_at: string
-          description: Json
-          features: string[]
-          id: string
-          images: string[]
-          name: string
-          slug: string
-        }
-        Insert: {
-          brand: string
-          created_at?: string
-          description: Json
-          features: string[]
-          id?: string
-          images: string[]
-          name: string
-          slug: string
-        }
-        Update: {
-          brand?: string
-          created_at?: string
-          description?: Json
-          features?: string[]
-          id?: string
-          images?: string[]
-          name?: string
-          slug?: string
+          nombre?: string
         }
         Relationships: []
       }
-      user_roles: {
+      Libros: {
         Row: {
-          id: number
-          role: string
-          user_id: string | null
+          fecha_publicacion: string
+          id_libro: number
+          sinopsis: string
+          titulo: string
+          url_portada: string | null
         }
         Insert: {
-          id?: number
-          role: string
-          user_id?: string | null
+          fecha_publicacion: string
+          id_libro?: number
+          sinopsis: string
+          titulo: string
+          url_portada?: string | null
         }
         Update: {
-          id?: number
-          role?: string
-          user_id?: string | null
+          fecha_publicacion?: string
+          id_libro?: number
+          sinopsis?: string
+          titulo?: string
+          url_portada?: string | null
+        }
+        Relationships: []
+      }
+      libros_autores: {
+        Row: {
+          autor_id: number
+          libro_id: number
+        }
+        Insert: {
+          autor_id: number
+          libro_id: number
+        }
+        Update: {
+          autor_id?: number
+          libro_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "libros_autores_autor_id_fkey"
+            columns: ["autor_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "autor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "libros_autores_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+        ]
+      }
+      libros_fisicos: {
+        Row: {
+          cantidad: number
+          id: number
+          libro_id: number
+        }
+        Insert: {
+          cantidad?: number
+          id?: number
+          libro_id: number
+        }
+        Update: {
+          cantidad?: number
+          id?: number
+          libro_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "libros_fisicos_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+        ]
+      }
+      libros_virtuales: {
+        Row: {
+          direccion_del_libro: string
+          id: number
+          libro_id: number | null
+        }
+        Insert: {
+          direccion_del_libro: string
+          id?: number
+          libro_id?: number | null
+        }
+        Update: {
+          direccion_del_libro?: string
+          id?: number
+          libro_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "libros_virtuales_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+        ]
+      }
+      proyecto_investigacion: {
+        Row: {
+          escuela: string
+          id: number
+          libro_id: number | null
+          periodo_academico: string
+          tutor_id: number
+        }
+        Insert: {
+          escuela: string
+          id?: number
+          libro_id?: number | null
+          periodo_academico: string
+          tutor_id: number
+        }
+        Update: {
+          escuela?: string
+          id?: number
+          libro_id?: number | null
+          periodo_academico?: string
+          tutor_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proyecto_investigacion_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+          {
+            foreignKeyName: "proyecto_investigacion_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutor"
             referencedColumns: ["id"]
           },
         ]
       }
-      variants: {
+      reservas: {
         Row: {
-          color: string
-          color_name: string
-          id: string
-          price: number
-          product_id: string
-          stock: number
-          storage: string
+          "fecha _pedido": string
+          fecha_fin: string
+          fecha_inicio: string
+          id_reservas: number
+          libro_id: number
+          tipo_de_libro: string
+          usuario_id: number
         }
         Insert: {
-          color: string
-          color_name: string
-          id?: string
-          price: number
-          product_id: string
-          stock: number
-          storage: string
+          "fecha _pedido": string
+          fecha_fin: string
+          fecha_inicio: string
+          id_reservas?: number
+          libro_id: number
+          tipo_de_libro: string
+          usuario_id: number
         }
         Update: {
-          color?: string
-          color_name?: string
-          id?: string
-          price?: number
-          product_id?: string
-          stock?: number
-          storage?: string
+          "fecha _pedido"?: string
+          fecha_fin?: string
+          fecha_inicio?: string
+          id_reservas?: number
+          libro_id?: number
+          tipo_de_libro?: string
+          usuario_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "variants_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "reservas_libro_id_fkey"
+            columns: ["libro_id"]
             isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+          {
+            foreignKeyName: "reservas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
+      }
+      tesis: {
+        Row: {
+          escuela: string | null
+          id: number
+          libro_id: number | null
+          periodo_academico: string | null
+          tutor_id: number
+        }
+        Insert: {
+          escuela?: string | null
+          id?: number
+          libro_id?: number | null
+          periodo_academico?: string | null
+          tutor_id: number
+        }
+        Update: {
+          escuela?: string | null
+          id?: number
+          libro_id?: number | null
+          periodo_academico?: string | null
+          tutor_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tesis_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+          {
+            foreignKeyName: "tesis_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutor"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutor: {
+        Row: {
+          id: number
+          nombre: string
+        }
+        Insert: {
+          id?: number
+          nombre: string
+        }
+        Update: {
+          id?: number
+          nombre?: string
+        }
+        Relationships: []
+      }
+      usuarios: {
+        Row: {
+          contraseña: string
+          correo: string
+          escuela: number | null
+          estado: string | null
+          id: number
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Insert: {
+          contraseña: string
+          correo: string
+          escuela?: number | null
+          estado?: string | null
+          id?: number
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Update: {
+          contraseña?: string
+          correo?: string
+          escuela?: number | null
+          estado?: string | null
+          id?: number
+          nombre?: string
+          rol?: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -277,7 +336,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      rol_usuario: "estudiante" | "docente" | "administrador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -285,27 +344,33 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -313,20 +378,24 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -334,20 +403,24 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -355,14 +428,46 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      rol_usuario: ["estudiante", "docente", "administrador"],
+    },
+  },
+} as const
