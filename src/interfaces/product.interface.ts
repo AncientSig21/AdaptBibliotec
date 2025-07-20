@@ -10,10 +10,11 @@ export interface PreparedBook {
 	coverImage: string; // Portada
 	created_at: string;
 	price?: number; // Opcional si mostrarás "Gratis" o algún precio simbólico
-
 	// Nuevos campos:
 	type: 'Físico' | 'Virtual' | 'Tesis' | (string & {});
-	speciality:string;
+	speciality: string;
+	fragment?: string; // Fragmento de la primera página
+	fileUrl?: string; // URL del archivo para descargar
 }
 
 export interface TesisBook extends PreparedBook {
