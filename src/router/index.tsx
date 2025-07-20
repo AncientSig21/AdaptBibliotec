@@ -4,10 +4,13 @@ import { RootLayout } from '../layouts/RootLayout';
 import { HomePage, BookPages, TesisPages } from '../pages';
 import { allBooks } from '../data/initialData';
 import { TesisBook } from '../interfaces';
+import { LoginPage } from '../pages/LoginPage';
+import { RegisterPage } from '../pages/RegisterPage';
 
 const onlyTesis = allBooks.filter(book => book.type === 'Tesis') as TesisBook[];
+const onlyBooks = allBooks.filter(book => book.type === 'Físico' || book.type === 'Virtual');
 
-const onlyBooks = allBooks.filter(book => book.type === 'Fisico | Virtual');
+const AdminPage = () => <div className="min-h-screen flex items-center justify-center text-3xl font-bold">Bienvenido, Admin</div>;
 
 export const router = createBrowserRouter([
   {
@@ -20,11 +23,27 @@ export const router = createBrowserRouter([
       },
       {
         path: 'libros',
-        element: <BookPages book = {onlyBooks} />,
+        element: <BookPages books={onlyBooks} />,
       },
       {
         path: 'tesis',
         element: <TesisPages books={onlyTesis} />,
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
+      },
+      {
+        path: 'admin',
+        element: <AdminPage />,
+      },
+      {
+        path: 'estudiantes',
+        element: <HomePage />, // Muestra la página de inicio para estudiantes
       },
     ],
   },
