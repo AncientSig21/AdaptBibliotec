@@ -18,6 +18,7 @@ export interface User {
   nombre: string;
   correo: string;
   escuela: string | null;
+  rol?: string; // Campo opcional para rol (admin, usuario, etc.)
 }
 
 // Función para crear cliente de Supabase de forma segura
@@ -70,7 +71,7 @@ export const authService = {
       const { data, error } = await supabase
         .from('usuarios')
         .insert([userData])
-        .select('id, nombre, correo, escuela')
+        .select('id, nombre, correo, escuela, rol')
         .single();
 
       return { data, error };
@@ -88,7 +89,7 @@ export const authService = {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, correo, escuela')
+        .select('id, nombre, correo, escuela, rol')
         .eq('correo', loginData.correo)
         .eq('contraseña', loginData.contraseña)
         .single();

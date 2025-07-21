@@ -41,8 +41,11 @@ export const LoginPage = () => {
     if (result.success) {
       // Pequeño delay para asegurar que el estado se actualice
       setTimeout(() => {
-        // Recargar la página para asegurar que el estado se actualice correctamente
-        window.location.href = '/';
+        if (result.user && result.user.rol === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/';
+        }
       }, 100);
     }
   };

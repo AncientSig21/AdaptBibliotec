@@ -5,6 +5,7 @@ import {
 	HiOutlineShoppingBag,
 } from 'react-icons/hi';
 import { FaBarsStaggered } from 'react-icons/fa6';
+import { FaTachometerAlt } from 'react-icons/fa';
 import { Logo } from './Logo';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -107,6 +108,16 @@ export const Navbar = () => {
 
 				{isConfigured && isAuthenticated && user ? (
 					<>
+						{/* Botón para admin: Ir al dashboard */}
+						{user.rol === 'admin' && (
+							<button
+								title="Ir al Dashboard"
+								onClick={() => navigate('/admin')}
+								className="p-2 rounded-full hover:bg-gray-100 transition"
+							>
+								<FaTachometerAlt size={22} className="text-blue-600" />
+							</button>
+						)}
 						<div className='relative'>
 							{/* User Nav */}
 							<button
