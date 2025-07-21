@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'estudiantes',
-        element: <HomePage />, // Muestra la página de inicio para estudiantes
+        element: <HomePage />,
       },
     ],
   },

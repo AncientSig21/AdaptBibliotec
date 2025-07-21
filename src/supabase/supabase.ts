@@ -60,18 +60,21 @@ export type Database = {
           id_libro: number
           sinopsis: string
           titulo: string
+          url_portada: string | null
         }
         Insert: {
           fecha_publicacion: string
           id_libro?: number
           sinopsis: string
           titulo: string
+          url_portada?: string | null
         }
         Update: {
           fecha_publicacion?: string
           id_libro?: number
           sinopsis?: string
           titulo?: string
+          url_portada?: string | null
         }
         Relationships: []
       }
@@ -299,29 +302,26 @@ export type Database = {
         Row: {
           contraseña: string
           correo: string
-          escuela: number | null
+          escuela: string | null
           estado: string | null
           id: number
           nombre: string
-          rol: Database["public"]["Enums"]["rol_usuario"]
         }
         Insert: {
           contraseña: string
           correo: string
-          escuela?: number | null
+          escuela?: string | null
           estado?: string | null
           id?: number
           nombre: string
-          rol: Database["public"]["Enums"]["rol_usuario"]
         }
         Update: {
           contraseña?: string
           correo?: string
-          escuela?: number | null
+          escuela?: string | null
           estado?: string | null
           id?: number
           nombre?: string
-          rol?: Database["public"]["Enums"]["rol_usuario"]
         }
         Relationships: []
       }
@@ -333,7 +333,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      rol_usuario: "estudiante" | "docente" | "administrador"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -463,8 +463,6 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {
-      rol_usuario: ["estudiante", "docente", "administrador"],
-    },
+    Enums: {},
   },
 } as const

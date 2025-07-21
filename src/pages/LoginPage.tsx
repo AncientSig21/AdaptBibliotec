@@ -1,23 +1,56 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { validation } from '../utils/validation';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const navigate = useNavigate();
+  const { login, loading, error, clearError, isConfigured } = useAuth();
 
-  // Simulación de verificación de rol (esto se reemplazará por la lógica real del backend)
-  const handleLogin = (e: React.FormEvent) => {
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    // Validar email
+    const emailError = validation.getEmailError(email);
+    if (emailError) newErrors.email = emailError;
+
+    // Validar contraseña
+    const passwordError = validation.getPasswordError(password);
+    if (passwordError) newErrors.password = passwordError;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    // Simulación: si el email es admin@admin.com, es admin; si termina en @estudiante.com, es estudiante
-    if (email === 'admin@admin.com' && password === 'admin123') {
-      navigate('/admin');
-    } else if (email.endsWith('@estudiante.com') && password.length > 3) {
-      navigate('/estudiantes');
-    } else {
-      setError('Credenciales incorrectas o usuario no autorizado.');
+    clearError();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const result = await login({
+      correo: email,
+      contraseña: password,
+    });
+
+    if (result.success) {
+      // Pequeño delay para asegurar que el estado se actualice
+      setTimeout(() => {
+        // Recargar la página para asegurar que el estado se actualice correctamente
+        window.location.href = '/';
+      }, 100);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -28,29 +61,54 @@ export const LoginPage = () => {
         className="bg-white p-8 rounded shadow-lg shadow-gray-400 w-full max-w-md flex flex-col gap-4"
       >
         <h2 className="text-2xl font-bold text-center mb-4">Iniciar sesión</h2>
+        
+        {!isConfigured && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-yellow-700">
+              <strong>Modo simulado:</strong> El sistema de autenticación no está configurado. 
+              Cualquier email y contraseña funcionarán para probar la interfaz.
+            </p>
+          </div>
+        )}
+        
         <input
           type="email"
           placeholder="Correo electrónico"
           value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border p-2 rounded w-full"
+          onChange={e => {
+            setEmail(e.target.value);
+            handleInputChange('email', e.target.value);
+          }}
+          className={`border p-2 rounded w-full ${errors.email ? 'border-red-500' : ''}`}
           required
         />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="border p-2 rounded w-full"
+          onChange={e => {
+            setPassword(e.target.value);
+            handleInputChange('password', e.target.value);
+          }}
+          className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
           required
         />
+        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          disabled={loading}
+          className={`bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          Ingresar
+          {loading ? 'Iniciando sesión...' : 'Ingresar'}
         </button>
+        
         <button
           type="button"
           className="text-blue-600 underline text-sm mt-2"
