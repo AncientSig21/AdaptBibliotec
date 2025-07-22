@@ -5,12 +5,15 @@ interface Props {
 	title: string;
 	author: string;
 	price?: number;
+	slug: string;
 	speciality: string;
 	type: string;
+	fragment?: string;
+	fileUrl?: string;
 	onViewDetails?: () => void; // Nueva prop opcional
 }
 
-export const CardBook = ({ img, title, author, speciality, type, onViewDetails }: Props) => {
+export const CardBook = ({ img, title, author, slug, speciality, type, fragment, fileUrl, onViewDetails }: Props) => {
 	return (
 		<div className='flex flex-col gap-6 relative border p-4 rounded-lg shadow-md'>
 			<div className='flex relative group overflow-hidden '>
@@ -25,6 +28,7 @@ export const CardBook = ({ img, title, author, speciality, type, onViewDetails }
 				<button
 					onClick={onViewDetails}
 					className='bg-white border border-slate-200 absolute w-full bottom-0 py-3 rounded-3xl flex items-center justify-center gap-1 text-sm font-medium hover:bg-stone-100 translate-y-[100%] transition-all duration-300 group-hover:translate-y-0'
+					title={`slug: ${slug}`}
 				>
 					+ Ver detalles
 				</button>
@@ -35,6 +39,8 @@ export const CardBook = ({ img, title, author, speciality, type, onViewDetails }
 				<p className='text-[13px] text-gray-600'>Autor: {author}</p>
 				<p className='text-[13px] text-gray-600'>Especialidad: {speciality}</p>
 				<p className='text-[13px] text-gray-600'>Tipo: {type}</p>
+				{fragment && <p className='text-[12px] text-gray-400 truncate w-full' title={fragment}>Fragmento: {fragment.slice(0, 30)}...</p>}
+				{fileUrl && <a href={fileUrl} className='text-blue-500 text-xs underline break-all' target='_blank' rel='noopener noreferrer'>Ver archivo</a>}
 			</div>
 		</div>
 	);

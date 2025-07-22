@@ -50,7 +50,7 @@ export const LoginPage = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string) => {
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -80,7 +80,7 @@ export const LoginPage = () => {
           value={email}
           onChange={e => {
             setEmail(e.target.value);
-            handleInputChange('email', e.target.value);
+            handleInputChange('email');
           }}
           className={`border p-2 rounded w-full ${errors.email ? 'border-red-500' : ''}`}
           required
@@ -93,7 +93,7 @@ export const LoginPage = () => {
           value={password}
           onChange={e => {
             setPassword(e.target.value);
-            handleInputChange('password', e.target.value);
+            handleInputChange('password');
           }}
           className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
           required

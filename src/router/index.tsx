@@ -11,8 +11,6 @@ import AdminDashboard from '../pages/AdminDashboard';
 const onlyTesis = allBooks.filter(book => book.type === 'Tesis') as TesisBook[];
 const onlyBooks = allBooks.filter(book => book.type === 'Físico' || book.type === 'Virtual');
 
-const AdminPage = () => <div className="min-h-screen flex items-center justify-center text-3xl font-bold">Bienvenido, Admin</div>;
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -40,7 +38,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'admin',
-        element: <AdminDashboard />, // Cambiado para usar la nueva página
+        element: <AdminDashboard />,
       },
       {
         path: 'estudiantes',

@@ -18,10 +18,9 @@ export interface User {
   nombre: string;
   correo: string;
   escuela: string | null;
-  rol?: string; // Campo opcional para rol (admin, usuario, etc.)
+  rol?: string;
 }
 
-// Función para crear cliente de Supabase de forma segura
 const createSupabaseClient = () => {
   const supabaseKey = import.meta.env.VITE_SUPABASE_API_KEY;
   const supabaseUrl = import.meta.env.VITE_PROJECT_URL_SUPABASE;
@@ -74,6 +73,11 @@ export const authService = {
         .select('id, nombre, correo, escuela, rol')
         .single();
 
+      // Si data es un error de columna, retorna null
+      if (data && typeof data === 'object' && 'message' in data && String(data.message).includes("column 'rol' does not exist")) {
+        return { data: null, error: data };
+      }
+
       return { data, error };
     } catch (error) {
       return { data: null, error };
@@ -93,6 +97,11 @@ export const authService = {
         .eq('correo', loginData.correo)
         .eq('contraseña', loginData.contraseña)
         .single();
+
+      // Si data es un error de columna, retorna null
+      if (data && typeof data === 'object' && 'message' in data && String(data.message).includes("column 'rol' does not exist")) {
+        return { data: null, error: data };
+      }
 
       return { data, error };
     } catch (error) {

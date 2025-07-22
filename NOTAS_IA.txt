@@ -1,0 +1,41 @@
+# =============================================
+# ANOTACIONES DE CAMBIOS REALIZADOS POR IA
+# =============================================
+# Fecha: [Completar con la fecha actual al guardar]
+#
+# 1. Problema detectado: El sistema de autenticación no estaba configurado correctamente.
+#    Motivo: Faltaban las variables de entorno necesarias para Supabase.
+#    Archivos involucrados: src/supabase/client.ts, src/hooks/useAuth.ts, env.example
+#    Solución:
+#      - Se recomendó crear un archivo .env en la raíz del proyecto.
+#      - Se indicó copiar el contenido de env.example a .env y asegurarse de que las claves sean correctas.
+#      - Se sugirió reiniciar el servidor de desarrollo tras agregar el archivo .env.
+#
+# Todas las futuras modificaciones y sus motivos se documentarán aquí, siempre en formato de comentario para evitar errores de ejecución.
+# =============================================
+
+# =============================================
+# Fecha: [Completar con la fecha actual al guardar]
+#
+# 2. Se modificó el archivo src/pages/AdminDashboard.tsx para que muestre el número real de libros almacenados en la base de datos Supabase.
+#    - Se agregó un useEffect que consulta la cantidad de libros usando supabase.from('Libros').select('*', { count: 'exact', head: true })
+#    - El valor se muestra dinámicamente en el panel de "Libros Totales".
+#    - Si hay error, se muestra "Error"; si está cargando, se muestra "...".
+#    - Motivo: Mostrar información real y actualizada al administrador.
+# =============================================
+
+# =============================================
+# Fecha: [Completar con la fecha actual al guardar]
+#
+# 3. Corrección en src/pages/AdminDashboard.tsx:
+#    - Se volvió a usar 'Libros' (con mayúscula) en la consulta a Supabase.
+#    - Motivo: El cliente tipado de Supabase espera el nombre de la tabla exactamente como está definido en los tipos generados, lo que evita errores de compilación y asegura la consulta correcta.
+# ============================================= 
+
+# =============================================
+# Fecha: [Completar con la fecha actual al guardar]
+#
+# 4. Se restauró el código en src/pages/AdminDashboard.tsx para consultar y mostrar el número real de libros desde Supabase.
+#    - Se agregaron mensajes de consola para depuración (console.log y console.error).
+#    - Motivo: Ayudar a depurar y asegurar que el número de libros se muestre correctamente en el panel de administrador.
+# ============================================= 

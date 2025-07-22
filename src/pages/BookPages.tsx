@@ -108,6 +108,7 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
                     author={book.author}
                     price={book.price}
                     img={book.coverImage}
+                    slug={book.slug}
                     speciality={book.speciality}
                     type={book.type}
                     onViewDetails={() => handleViewDetails(book)}
