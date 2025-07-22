@@ -7,7 +7,7 @@ import {
 import { FaBarsStaggered } from 'react-icons/fa6';
 import { FaTachometerAlt } from 'react-icons/fa';
 import { Logo } from './Logo';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const Navbar = () => {
@@ -16,6 +16,8 @@ export const Navbar = () => {
 	const [showMenu, setShowMenu] = useState(false);
 	const [showDownloads, setShowDownloads] = useState(false);
 	const [downloads, setDownloads] = useState<{ id: string; title: string }[]>([]);
+	const userMenuRef = useRef<HTMLDivElement>(null);
+	const downloadsMenuRef = useRef<HTMLDivElement>(null);
 
 	// Cargar historial de descargas desde localStorage
 	useEffect(() => {
@@ -26,6 +28,28 @@ export const Navbar = () => {
 			}
 		}
 	}, [user?.id]);
+
+	useEffect(() => {
+		if (!showMenu) return;
+		function handleClickOutside(event: MouseEvent) {
+			if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+				setShowMenu(false);
+			}
+		}
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [showMenu]);
+
+	useEffect(() => {
+		if (!showDownloads) return;
+		function handleClickOutsideDownloads(event: MouseEvent) {
+			if (downloadsMenuRef.current && !downloadsMenuRef.current.contains(event.target as Node)) {
+				setShowDownloads(false);
+			}
+		}
+		document.addEventListener('mousedown', handleClickOutsideDownloads);
+		return () => document.removeEventListener('mousedown', handleClickOutsideDownloads);
+	}, [showDownloads]);
 
 	const handleToggleMenu = () => {
 		setShowMenu(v => {
@@ -127,7 +151,7 @@ export const Navbar = () => {
 								{user.nombre.charAt(0).toUpperCase()}
 							</button>
 							{showMenu && (
-								<div className='absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
+								<div ref={userMenuRef} className='absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
 									<p className='font-semibold mb-1'>Nombre: <span className='font-normal'>{user.nombre}</span></p>
 									<p className='font-semibold mb-1'>Email: <span className='font-normal'>{user.correo}</span></p>
 									{user.escuela && (
@@ -151,7 +175,7 @@ export const Navbar = () => {
 								<HiOutlineShoppingBag size={25} />
 							</button>
 							{showDownloads && (
-								<div className='absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
+								<div ref={downloadsMenuRef} className='absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
 									<p className='font-semibold mb-2'>Historial de descargas</p>
 									{downloads.length === 0 ? (
 										<p className='text-gray-500 text-sm'>No has descargado ningún libro.</p>
@@ -176,9 +200,21 @@ export const Navbar = () => {
 				)}
 			</div>
 
-			<button className='md:hidden'>
+			<button className='md:hidden' onClick={() => setShowMenu(v => !v)}>
 				<FaBarsStaggered size={25} />
 			</button>
+
+			{/* Menú desplegable mobile */}
+			{showMenu && (
+				<div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-end md:hidden">
+					<div className="w-2/3 max-w-xs bg-white h-full shadow-lg p-6 flex flex-col gap-6 animate-slide-in">
+						<button onClick={() => setShowMenu(false)} className="self-end text-2xl text-gray-500 mb-4">&times;</button>
+						<NavLink to="/" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Inicio</NavLink>
+						<NavLink to="/libros" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Libros</NavLink>
+						<NavLink to="/tesis" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Proyectos de Investigación</NavLink>
+					</div>
+				</div>
+			)}
 		</header>
 	);
 };

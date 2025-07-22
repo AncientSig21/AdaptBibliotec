@@ -25,11 +25,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'libros',
-        element: <BookPages books={onlyBooks} />,
+        element: <BookPages />, // sin prop books
       },
       {
         path: 'tesis',
-        element: <TesisPages books={onlyTesis} />,
+        element: <TesisPages />, // sin prop books
       },
       {
         path: 'login',

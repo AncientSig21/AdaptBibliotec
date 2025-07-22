@@ -8,8 +8,8 @@ const specialities = [
   'Ingeniería Civil',
   'Ingeniería Industrial',
   'Ingeniería Eléctrica',
-  'Ingeniería en Mantenimiento Mecánico',
-  'Ingeniería en Sistemas',
+  'Ingeniería En Mantenimiento Mecánico',
+  'Ingeniería De Sistemas',
 ];
 
 export const RegisterPage = () => {

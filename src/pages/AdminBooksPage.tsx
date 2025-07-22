@@ -6,6 +6,21 @@ interface Libro {
   titulo: string;
   sinopsis: string;
   type?: string;
+  url_portada?: string;
+}
+
+// Función para subir imagen a Supabase Storage y obtener la URL pública
+async function uploadImageToSupabase(file: File): Promise<string | null> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const { data, error } = await supabase.storage.from('fotos.portada').upload(fileName, file);
+  if (error) {
+    alert('Error al subir la imagen: ' + error.message);
+    return null;
+  }
+  // Obtener la URL pública
+  const { publicUrl } = supabase.storage.from('portadas').getPublicUrl(fileName).data;
+  return publicUrl || null;
 }
 
 const AdminBooksPage = () => {
@@ -31,7 +46,7 @@ const AdminBooksPage = () => {
       setError('Error al obtener los libros');
       setLibros([]);
     } else {
-      setLibros(data || []);
+      setLibros(data as unknown as Libro[] || []);
     }
     setLoading(false);
   };
@@ -91,30 +106,29 @@ const AdminBooksPage = () => {
           {showForm ? 'Cancelar' : 'Agregar Libro'}
         </button>
         {showForm && (
-          <form onSubmit={handleAddLibro} className="mb-6 flex flex-col gap-2">
-            <input
-              type="text"
-              placeholder="Título"
-              value={newTitulo}
-              onChange={e => setNewTitulo(e.target.value)}
-              className="border p-2 rounded"
-              required
-            />
-            <textarea
-              placeholder="Sinopsis"
-              value={newSinopsis}
-              onChange={e => setNewSinopsis(e.target.value)}
-              className="border p-2 rounded"
-              required
-            />
+          <form onSubmit={handleAddLibro} className="mb-6 flex flex-col gap-3">
+            <input type="text" name="titulo" required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
+            <input type="text" name="autor" required placeholder="Autor" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
+            <input type="date" name="fecha_publicacion" required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
+            <textarea name="sinopsis" required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white resize-none min-h-[80px]" />
+            <div className="flex items-center gap-2">
+              <input type="url" name="url_portada" required placeholder="URL de la portada" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" id="input-url-portada" />
+              <label htmlFor="file-portada" className="cursor-pointer bg-cyan-600 text-white rounded-lg px-3 py-2 flex items-center justify-center hover:bg-cyan-700 transition" title="Subir imagen">
+                <span className="text-xl font-bold">+</span>
+                <input type="file" id="file-portada" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  // Subir la imagen a Supabase Storage y obtener la URL pública
+                  const url = await uploadImageToSupabase(file);
+                  const input = document.getElementById('input-url-portada') as HTMLInputElement | null;
+                  if (input && url) input.value = url;
+                }} />
+              </label>
+            </div>
+            <input type="text" name="tipo" required placeholder="Tipo (Físico, Virtual, Tesis, etc.)" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
+            <input type="text" name="especialidad" required placeholder="Especialidad" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
             {addError && <p className="text-red-500 text-sm">{addError}</p>}
-            <button
-              type="submit"
-              className="bg-green-600 text-white py-2 rounded hover:bg-green-700"
-              disabled={addLoading}
-            >
-              {addLoading ? 'Agregando...' : 'Agregar'}
-            </button>
+            <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 mt-2 hover:bg-cyan-700 transition">Guardar Libro</button>
           </form>
         )}
         {/* Cuadros de libros */}
@@ -122,9 +136,17 @@ const AdminBooksPage = () => {
           {libros.map((libro) => (
             <div
               key={libro.id_libro}
-              className="bg-gray-100 rounded-lg shadow p-3 flex flex-col items-start min-h-[120px] max-h-[160px]"
-              style={{ minHeight: 120, maxHeight: 160 }}
+              className="bg-gray-100 rounded-lg shadow p-3 flex flex-col items-start min-h-[120px] max-h-[220px] w-full"
+              style={{ minHeight: 120, maxHeight: 220 }}
             >
+              {libro.url_portada && (
+                <img
+                  src={libro.url_portada}
+                  alt={libro.titulo}
+                  className="w-24 h-32 object-cover rounded mb-2 self-center"
+                  style={{ maxWidth: 96, maxHeight: 128 }}
+                />
+              )}
               <strong className="text-base mb-1 truncate w-full" title={libro.titulo}>
                 {libro.titulo}
               </strong>

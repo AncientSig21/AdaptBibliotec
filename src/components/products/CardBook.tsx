@@ -3,7 +3,7 @@ import React from 'react';
 interface Props {
 	img: string;
 	title: string;
-	author: string;
+	authors: string;
 	price?: number;
 	slug: string;
 	speciality: string;
@@ -13,7 +13,7 @@ interface Props {
 	onViewDetails?: () => void; // Nueva prop opcional
 }
 
-export const CardBook = ({ img, title, author, slug, speciality, type, fragment, fileUrl, onViewDetails }: Props) => {
+export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails }: Props) => {
 	return (
 		<div className='flex flex-col gap-6 relative border p-4 rounded-lg shadow-md'>
 			<div className='flex relative group overflow-hidden '>
@@ -36,7 +36,7 @@ export const CardBook = ({ img, title, author, slug, speciality, type, fragment,
 
 			<div className='flex flex-col gap-1 items-center'>
 				<p className='text-[15px] font-semibold'>{title}</p>
-				<p className='text-[13px] text-gray-600'>Autor: {author}</p>
+				<p className='text-[14px] text-gray-800 font-medium mb-1'>Autor: {authors}</p>
 				<p className='text-[13px] text-gray-600'>Especialidad: {speciality}</p>
 				<p className='text-[13px] text-gray-600'>Tipo: {type}</p>
 				{fragment && <p className='text-[12px] text-gray-400 truncate w-full' title={fragment}>Fragmento: {fragment.slice(0, 30)}...</p>}

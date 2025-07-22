@@ -15,7 +15,7 @@ export const navbarLinks = [
 	},
 	{
 		id: 3,
-		title: 'Tesis',
+		title: 'Proyectos de Investigación',
 		href: '/tesis',
 	},
 ];

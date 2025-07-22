@@ -39,3 +39,86 @@
 #    - Se agregaron mensajes de consola para depuración (console.log y console.error).
 #    - Motivo: Ayudar a depurar y asegurar que el número de libros se muestre correctamente en el panel de administrador.
 # ============================================= 
+
+# Cambio realizado el 2024-07-05:
+# Se dejó de mostrar los libros provenientes de initialData (allBooks) en HomePage y BookPages.
+# Ahora, si no hay libros disponibles, se muestra el mensaje: "No hay libros disponibles" en ambas páginas.
+# Esto prepara el sistema para mostrar solo los libros que provengan de la base de datos en el futuro. 
+
+# Proceso de resolución y depuración del filtro en TesisPages (2024-07-05)
+#
+# 1. Problema inicial: El filtro de TesisPages no funcionaba correctamente, mostraba todos los libros sin importar el filtro seleccionado.
+# 2. Se revisó el filtrado y se comprobó que la comparación se hacía entre el valor del checkbox y el campo type de los libros, usando una función normalize.
+# 3. Se detectó que la función normalize eliminaba más caracteres de los necesarios (espacios, números, etc.), lo que hacía que todos los valores normalizados coincidieran y el filtro siempre diera true.
+# 4. Se agregaron logs para depurar: se imprimieron los valores de selectedSpecialities, los tipos de los libros y el resultado de la comparación para cada libro.
+# 5. Se comprobó que la comparación daba true para todos los libros, incluso cuando solo se seleccionaba "Tesis".
+# 6. Solución: Se corrigió la función normalize para que solo elimine tildes usando el regex /[\u0300-\u036f]/g y no elimine espacios ni otros caracteres importantes.
+# 7. Resultado: Ahora el filtro funciona correctamente, mostrando solo los libros cuyo type coincide (ignorando tildes y mayúsculas) con el filtro seleccionado.
+#
+# Este proceso incluyó pruebas, logs de depuración y ajuste fino de la función de normalización para lograr un filtrado robusto y preciso en TesisPages. 
+
+# =============================================
+# Proceso detallado de resolución y depuración del filtro en TesisPages (2024-07-05)
+#
+# 1. Se detectó que el filtro de TesisPages no funcionaba correctamente: al seleccionar un filtro (por ejemplo, "Tesis"), seguían mostrándose libros de otros tipos como "Pasantias" y "Servicio Comunitario".
+#
+# 2. Se revisó el código y se comprobó que el filtrado se hacía así:
+#    filteredBooks = filteredBooks.filter(book =>
+#      selectedSpecialities.some(sel =>
+#        book.type && normalize(sel) === normalize(book.type)
+#      )
+#    );
+#    Donde normalize era una función que eliminaba tildes y otros caracteres.
+#
+# 3. Explicación del algoritmo anterior:
+#    - selectedSpecialities es un array con los valores seleccionados en los checkboxes (por ejemplo, ["Tesis"]).
+#    - Para cada libro, se compara el valor normalizado del filtro (sel) con el valor normalizado del campo type del libro.
+#    - Si coincide, el libro se mantiene en el arreglo filtrado.
+#    - El problema era que la función normalize eliminaba demasiados caracteres, haciendo que todos los valores coincidieran.
+#
+# 4. Ejemplo de la función normalize incorrecta:
+#    function normalize(str: string) {
+#      return (str || '')
+#        .toLowerCase()
+#        .normalize('NFD')
+#        .replace(/[ 0-\u036f]/g, '') // INCORRECTO: elimina espacios, números y todos los caracteres Unicode hasta \u036f
+#        .trim();
+#    }
+#    - Esto hacía que "Tesis", "Pasantias" y "Servicio Comunitario" se normalizaran a la misma cadena vacía o similar, por lo que la comparación siempre daba true.
+#
+# 5. Logs de depuración:
+#    - Se imprimió selectedSpecialities para ver qué filtros estaban activos.
+#    - Se imprimió Book types para ver los tipos de los libros antes de filtrar.
+#    - Se imprimió la comparación real dentro del filtro:
+#      filteredBooks = filteredBooks.filter(book => {
+#        const result = selectedSpecialities.some(sel =>
+#          book.type && normalize(sel) === normalize(book.type)
+#        );
+#        console.log(
+#          `Comparando: filtro "${selectedSpecialities[0]}" con libro "${book.title}" (type: "${book.type}") =>`,
+#          result
+#        );
+#        return result;
+#      });
+#    - Esto permitió ver que la comparación daba true para todos los libros, sin importar el filtro.
+#
+# 6. Solución: Se corrigió la función normalize para que solo elimine tildes:
+#    function normalize(str: string) {
+#      return (str || '')
+#        .toLowerCase()
+#        .normalize('NFD')
+#        .replace(/[\u0300-\u036f]/g, '') // CORRECTO: solo elimina tildes
+#        .trim();
+#    }
+#    - Ahora, "Tesis" se normaliza a "tesis", "Pasantias" a "pasantias", etc., y la comparación es precisa.
+#
+# 7. Algoritmo final correcto:
+#    filteredBooks = filteredBooks.filter(book =>
+#      selectedSpecialities.some(sel =>
+#        book.type && normalize(sel) === normalize(book.type)
+#      )
+#    );
+#    - Esto asegura que solo los libros cuyo type coincide exactamente (ignorando tildes y mayúsculas) con el filtro seleccionado se muestren.
+#
+# 8. Se documentó todo el proceso, incluyendo hipótesis, pruebas, logs, errores encontrados y la solución final, para futuras referencias y para evitar errores similares en otros filtros.
+# ============================================= 

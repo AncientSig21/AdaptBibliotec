@@ -1,16 +1,19 @@
 import { PreparedBook } from '../../interfaces';
 import { CardBook } from '../products/CardBook';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Props {
 	title: string;
 	books: PreparedBook[];
+	noBooksMessage?: string;
 }
 
-export const BookGrid = ({ title, books }: Props) => {
+export const BookGrid = ({ title, books, noBooksMessage }: Props) => {
 	const [selectedBook, setSelectedBook] = useState<PreparedBook | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const { isAuthenticated } = useAuth();
 
 	const handleViewDetails = (book: PreparedBook) => {
 		setSelectedBook(book);
@@ -33,22 +36,26 @@ export const BookGrid = ({ title, books }: Props) => {
 				{title}
 			</h2>
 
-			<div className='grid grid-cols-1 gap-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4'>
-				{filteredBooks.map(book => (
-					<CardBook
-						key={book.id}
-						img={book.coverImage}
-						title={book.title}
-						author={book.author}
-						slug={book.slug}
-						speciality={book.speciality}
-						type={book.type}
-						fragment={book.fragment}
-						fileUrl={book.fileUrl}
-						onViewDetails={() => handleViewDetails(book)}
-					/>
-				))}
-			</div>
+			{filteredBooks.length === 0 ? (
+				<p className='text-center text-gray-500 text-lg my-8'>{noBooksMessage || 'No hay libros disponibles.'}</p>
+			) : (
+				<div className='grid grid-cols-1 gap-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4'>
+					{filteredBooks.map(book => (
+						<CardBook
+							key={book.id}
+							img={book.coverImage}
+							title={book.title}
+							authors={book.authors}
+							slug={book.slug}
+							speciality={book.speciality}
+							type={book.type as 'Fisico' | 'Virtual'}
+							fragment={book.fragment}
+							fileUrl={book.fileUrl}
+							onViewDetails={() => handleViewDetails(book)}
+						/>
+					))}
+				</div>
+			)}
 
 			{/* Modal */}
 			<AnimatePresence>
@@ -73,15 +80,20 @@ export const BookGrid = ({ title, books }: Props) => {
 							&times;
 						</button>
 						<h3 className="text-xl font-bold mb-2 text-center">{selectedBook.title}</h3>
+						<p className="text-center text-gray-700 mb-2">Autor: {selectedBook.authors}</p>
 						<p className="text-lg font-semibold text-center mb-2 text-gray-800">Capítulo 1</p>
 						<p className="text-gray-700 whitespace-pre-line mb-4">{(selectedBook.fragment || '').replace(/^Capítulo 1:?\s*/i, '') || 'No hay fragmento disponible.'}</p>
-						<a
-							href={selectedBook.fileUrl}
-							download
-							className="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700 transition"
-						>
-							Descargar libro
-						</a>
+						{isAuthenticated ? (
+							<a
+								href={selectedBook.fileUrl}
+								download
+								className="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700 transition"
+							>
+								Descargar libro
+							</a>
+						) : (
+							<p className="text-center text-red-500 font-semibold">Debes iniciar sesión para descargar el libro.</p>
+						)}
 					</motion.div>
 				</motion.div>
 			)}

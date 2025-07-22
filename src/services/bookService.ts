@@ -1,32 +1,31 @@
-import { createClient } from '@supabase/supabase-js';
-import { Database } from '../supabase/supabase';
-import { PreparedBook } from '../interfaces/product.interface';
+import { supabase } from '../supabase/client';
 
-const supabaseKey = import.meta.env.VITE_SUPABASE_API_KEY;
-const supabaseUrl = import.meta.env.VITE_PROJECT_URL_SUPABASE;
-const supabase = createClient<Database>(supabaseUrl, supabaseKey);
-
-export const bookService = {
-  async getBooks(): Promise<{ data: PreparedBook[]; error: any }> {
-    const { data, error } = await supabase.from('Libros').select('*');
-    if (error) return { data: [], error };
-
-    // Mapea los datos de la base a PreparedBook
-    const mapped = (data || []).map((row: any) => ({
-      id: String(row.id_libro),
-      title: row.titulo,
-      author: '', // Si tienes relación con autores, aquí puedes hacer un join o consulta adicional
-      slug: '',   // Si tienes un campo slug, mapea aquí
-      features: [], // Si tienes features, mapea aquí
-      description: row.sinopsis,
-      coverImage: row.url_portada || '',
-      created_at: row.fecha_publicacion,
-      price: undefined, // Si tienes precio, mapea aquí
-      type: 'Físico', // O 'Virtual', según tu lógica o tabla relacionada
-      speciality: '', // Si tienes especialidad, mapea aquí
-      fragment: '', // Si tienes fragmento, mapea aquí
-      fileUrl: '', // Si tienes url de descarga, mapea aquí
-    }));
-    return { data: mapped, error: null };
+export const fetchBooks = async () => {
+  const { data, error } = await supabase
+    .from('Libros')
+    .select('id_libro, titulo, fecha_publicacion, sinopsis, url_portada, tipo, especialidad, libros_autores(autor:autor_id(nombre))');
+  if (error) {
+    throw error;
   }
+
+  return (data || []).map((book: any) => ({
+    id: book.id_libro,
+    title: book.titulo,
+    authors: book.libros_autores && book.libros_autores.length > 0
+      ? book.libros_autores.map((a: any) => a.autor.nombre).join(', ')
+      : 'Desconocido',
+    author: book.libros_autores && book.libros_autores.length > 0
+      ? book.libros_autores[0].autor.nombre
+      : 'Desconocido',
+    slug: book.titulo.toLowerCase().replace(/\s+/g, '-'),
+    features: [],
+    description: { content: [{ type: 'paragraph', content: [{ type: 'text', text: book.sinopsis || '' }] }] },
+    coverImage: book.url_portada,
+    created_at: book.fecha_publicacion,
+    price: 0,
+    type: book.tipo,
+    speciality: book.especialidad || '',
+    fragment: '',
+    fileUrl: '',
+  }));
 }; 

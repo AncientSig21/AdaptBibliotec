@@ -4,6 +4,7 @@ export interface PreparedBook {
 	id: string;
 	title: string;
 	author: string;
+	authors: string; // <-- Agregado para múltiples autores
 	slug: string;
 	features: string[]; // Ej: ['Filosofía', 'Infantil']
 	description: JSONContent;

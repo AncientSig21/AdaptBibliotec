@@ -1,27 +1,77 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PreparedBook } from '../interfaces';
-import { allBooks } from '../data/initialData';
 import { useNavigate } from 'react-router-dom';
 import { CardBook } from '../components/products/CardBook';
 import { ContainerFilter } from '../components/products/ContainerFilter';
 import { useAuth } from '../hooks/useAuth';
+import { fetchBooks } from '../services/bookService';
 
-interface BookPagesProps {
-  books?: PreparedBook[];
-}
-
-export const BookPages = ({ books = [] }: BookPagesProps) => {
+export const BookPages = () => {
   const { isAuthenticated, isConfigured } = useAuth();
   const navigate = useNavigate();
 
-  // Generar lista de especialidades únicas a partir de todos los libros
-  const specialities = Array.from(new Set(allBooks.map(book => book.speciality)));
-
-  // Estado para filtros de carrera
+  const [books, setBooks] = useState<PreparedBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedBook, setSelectedBook] = useState<PreparedBook | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
 
-  // Filtramos solo los de tipo Físico o Virtual
+  useEffect(() => {
+    const loadBooks = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchBooks();
+        setBooks(data);
+      } catch (err: any) {
+        setError('Error al cargar los libros');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBooks();
+  }, []);
+
+  useEffect(() => {
+    // Mostrar en consola los dos arreglos filtrados
+    const librosFisicosVirtuales = books.filter(
+      book => book.type === 'Físico' || book.type === 'Virtual'
+    );
+    const librosTesisOtros = books.filter(
+      book =>
+        book.type === 'Tesis' ||
+        book.type === 'Servicio Comunitario' ||
+        book.type === 'Pasantía' ||
+        book.type === 'Pasantias'
+    );
+  }, [books]);
+
+  // Generar lista dinámica de especialidades únicas a partir de los libros cargados
+  const specialities = Array.from(new Set(books.map(book => book.speciality).filter(Boolean)));
+
+  // Lista fija de especialidades para los filtros
+  const specialitiesForFilter = [
+    'Ingeniería De Sistemas',
+    'Ingeniería Civil',
+    'Ingeniería en Mantenimiento Mecánico',
+    'Ingeniería Electrónica',
+    'Ingeniería Industrial',
+    'Ingeniería Eléctrica',
+    'Arquitectura',
+  ];
+
+  // Función para normalizar textos (ignorar mayúsculas y tildes)
+  function normalize(str: string) {
+    return (str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Elimina tildes correctamente
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Solo mostrar libros físicos o virtuales
   let filteredBooks = books.filter(
     book => book.type === 'Físico' || book.type === 'Virtual'
   );
@@ -29,13 +79,20 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
   // Filtrar por carreras seleccionadas
   if (selectedSpecialities.length > 0) {
     filteredBooks = filteredBooks.filter(book =>
-      selectedSpecialities.includes(book.speciality)
+      selectedSpecialities.some(sel =>
+        book.speciality && normalize(sel) === normalize(book.speciality)
+      )
     );
   }
 
-  const [selectedBook, setSelectedBook] = useState<PreparedBook | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  if (loading) {
+    return <p className="text-center text-gray-500 text-lg my-8">Cargando libros...</p>;
+  }
+  if (error) {
+    return <p className="text-center text-red-500 text-lg my-8">{error}</p>;
+  }
 
+  // Handler para ver detalles
   const handleViewDetails = (book: PreparedBook) => {
     setSelectedBook(book);
     setIsModalOpen(true);
@@ -52,7 +109,6 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
       e.preventDefault();
       navigate('/login');
     }
-    // Si está autenticado, el enlace funciona normalmente
   };
 
   return (
@@ -89,34 +145,39 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
         <ContainerFilter
           selectedSpecialities={selectedSpecialities}
           onChange={setSelectedSpecialities}
-          specialities={specialities}
+          specialities={specialitiesForFilter}
         />
 
         <div className='col-span-2 lg:col-span-2 xl:col-span-4 flex flex-col gap-12'>
-          <div className='grid grid-cols-2 gap-3 gap-y-10 xl:grid-cols-4'>
-            <AnimatePresence>
-              {filteredBooks.map(book => (
-                <motion.div
-                  key={book.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <CardBook
-                    title={book.title}
-                    author={book.author}
-                    price={book.price}
-                    img={book.coverImage}
-                    slug={book.slug}
-                    speciality={book.speciality}
-                    type={book.type}
-                    onViewDetails={() => handleViewDetails(book)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+          {filteredBooks.length === 0 ? (
+            <div className="my-32">
+              <p className="text-center text-gray-500 text-lg my-8">No hay libros disponibles.</p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-2 gap-3 gap-y-10 xl:grid-cols-4'>
+              <AnimatePresence>
+                {filteredBooks.map(book => (
+                  <motion.div
+                    key={book.id}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <CardBook
+                      title={book.title}
+                      authors={book.authors}
+                      price={book.price}
+                      img={book.coverImage}
+                      slug={book.slug}
+                      speciality={book.speciality}
+                      type={book.type}
+                      onViewDetails={() => handleViewDetails(book)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* TODO: Paginación */}
         </div>
@@ -145,28 +206,20 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
                 &times;
               </button>
               <h3 className="text-xl font-bold mb-2 text-center">{selectedBook.title}</h3>
+              <p className="text-center text-gray-700 mb-2">Autor: {selectedBook.authors}</p>
               <p className="text-lg font-semibold text-center mb-2 text-gray-800">Capítulo 1</p>
-              <p className="text-gray-700 whitespace-pre-line mb-4">{(selectedBook.fragment || '').replace(/^Capítulo 1:?:?\s*/i, '') || 'No hay fragmento disponible.'}</p>
-              
+              <p className="text-gray-700 whitespace-pre-line mb-4">{(selectedBook.fragment || '').replace(/^Capítulo 1:? 0*/i, '') || 'No hay fragmento disponible.'}</p>
               {isAuthenticated ? (
                 <a
                   href={selectedBook.fileUrl}
                   download
-                  onClick={e => handleDownload(e)}
+                  onClick={handleDownload}
                   className="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700 transition"
                 >
                   Descargar libro
                 </a>
               ) : (
-                <button
-                  onClick={() => {
-                    handleCloseModal();
-                    navigate('/login');
-                  }}
-                  className="block w-full bg-gray-600 text-white text-center py-2 rounded hover:bg-gray-700 transition"
-                >
-                  Inicia sesión para descargar
-                </button>
+                <p className="text-center text-red-500 font-semibold">Debes iniciar sesión para descargar el libro.</p>
               )}
             </motion.div>
           </motion.div>
@@ -174,4 +227,4 @@ export const BookPages = ({ books = [] }: BookPagesProps) => {
       </AnimatePresence>
     </>
   );
-};
+}
