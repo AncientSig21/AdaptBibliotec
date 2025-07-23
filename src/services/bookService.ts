@@ -8,6 +8,8 @@ export const fetchBooks = async () => {
     throw error;
   }
 
+  console.log('[IA] Datos crudos de libros desde la BDD:', data);
+
   return (data || []).map((book: any) => ({
     id: book.id_libro,
     title: book.titulo,

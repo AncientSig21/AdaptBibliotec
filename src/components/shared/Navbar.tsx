@@ -9,6 +9,9 @@ import { FaTachometerAlt } from 'react-icons/fa';
 import { Logo } from './Logo';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useCallback } from 'react';
+import { fetchBooks } from '../../services/bookService';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export const Navbar = () => {
 	const { user, isAuthenticated, logout, isConfigured, loading } = useAuth();
@@ -18,6 +21,13 @@ export const Navbar = () => {
 	const [downloads, setDownloads] = useState<{ id: string; title: string }[]>([]);
 	const userMenuRef = useRef<HTMLDivElement>(null);
 	const downloadsMenuRef = useRef<HTMLDivElement>(null);
+	// Estado para el buscador
+	const [showSearch, setShowSearch] = useState(false);
+	const [searchValue, setSearchValue] = useState('');
+	const searchInputRef = useRef<HTMLInputElement>(null);
+	const [allBooks, setAllBooks] = useState<any[]>([]);
+	const [suggestions, setSuggestions] = useState<any[]>([]);
+	const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
 	// Cargar historial de descargas desde localStorage
 	useEffect(() => {
@@ -50,6 +60,53 @@ export const Navbar = () => {
 		document.addEventListener('mousedown', handleClickOutsideDownloads);
 		return () => document.removeEventListener('mousedown', handleClickOutsideDownloads);
 	}, [showDownloads]);
+
+	// Función para manejar la búsqueda
+	const handleSearch = useCallback(() => {
+		if (searchValue.trim() !== '') {
+			navigate(`/libros?search=${encodeURIComponent(searchValue.trim())}`);
+			setShowSearch(false);
+			setSearchValue('');
+		}
+	}, [searchValue, navigate]);
+
+	// Enfocar el input cuando se muestre
+	useEffect(() => {
+		if (showSearch && searchInputRef.current) {
+			searchInputRef.current.focus();
+		}
+	}, [showSearch]);
+
+	// Cargar todos los libros al abrir el buscador
+	useEffect(() => {
+		if (showSearch && allBooks.length === 0) {
+			setLoadingSuggestions(true);
+			fetchBooks().then(data => {
+				setAllBooks(data);
+				setLoadingSuggestions(false);
+			});
+		}
+	}, [showSearch, allBooks.length]);
+
+	// Filtrar sugerencias en tiempo real
+	useEffect(() => {
+		if (searchValue.trim() === '') {
+			setSuggestions([]);
+			return;
+		}
+		const normalize = (str: string) =>
+			(str || '')
+				.toLowerCase()
+				.normalize('NFD')
+				.replace(/[\u0300-\u036f]/g, '')
+				.replace(/\s+/g, ' ')
+				.trim();
+		const query = normalize(searchValue);
+		const filtered = allBooks.filter(book =>
+			normalize(book.title).startsWith(query)
+		);
+		setSuggestions(filtered.slice(0, 6)); // máximo 6 sugerencias
+	}, [searchValue, allBooks]);
 
 	const handleToggleMenu = () => {
 		setShowMenu(v => {
@@ -86,9 +143,7 @@ export const Navbar = () => {
 							key={link.id}
 							to={link.href}
 							className={({ isActive }) =>
-								`${
-									isActive ? 'text-cyan-600 underline' : ''
-								} transition-all duration-300 font-medium hover:text-cyan-600 hover:underline `
+								`${isActive ? 'text-cyan-600 underline' : ''} transition-all duration-300 font-medium hover:text-cyan-600 hover:underline `
 							}
 						>
 							{link.title}
@@ -96,9 +151,24 @@ export const Navbar = () => {
 					))}
 				</nav>
 				<div className='flex gap-5 items-center'>
-					<button>
+					<button onClick={() => setShowSearch(v => !v)}>
 						<HiOutlineSearch size={25} />
 					</button>
+					{showSearch && (
+						<input
+							type='text'
+							className='border rounded px-2 py-1 ml-2'
+							placeholder='Buscar libro...'
+							value={searchValue}
+							onChange={e => setSearchValue(e.target.value)}
+							onKeyDown={e => {
+								if (e.key === 'Enter') {
+									handleSearch();
+								}
+							}}
+							ref={searchInputRef}
+						/>
+					)}
 					<div className='animate-pulse bg-gray-200 w-9 h-9 rounded-full'></div>
 				</div>
 			</header>
@@ -115,9 +185,7 @@ export const Navbar = () => {
 						key={link.id}
 						to={link.href}
 						className={({ isActive }) =>
-							`${
-								isActive ? 'text-cyan-600 underline' : ''
-							} transition-all duration-300 font-medium hover:text-cyan-600 hover:underline `
+							`${isActive ? 'text-cyan-600 underline' : ''} transition-all duration-300 font-medium hover:text-cyan-600 hover:underline `
 						}
 					>
 						{link.title}
@@ -125,10 +193,71 @@ export const Navbar = () => {
 				))}
 			</nav>
 
-			<div className='flex gap-5 items-center'>
-				<button>
+			<div className='flex gap-5 items-center relative'>
+				<button onClick={() => setShowSearch(v => !v)}>
 					<HiOutlineSearch size={25} />
 				</button>
+				<AnimatePresence>
+					{showSearch && (
+						<motion.div
+							className='relative'
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -10 }}
+							transition={{ duration: 0.18 }}
+						>
+							<input
+								type='text'
+								className='border rounded px-2 py-1 ml-2'
+								placeholder='Buscar libro...'
+								value={searchValue}
+								onChange={e => setSearchValue(e.target.value)}
+								onKeyDown={e => {
+									if (e.key === 'Enter') {
+										handleSearch();
+									}
+								}}
+								ref={searchInputRef}
+							/>
+							{/* Dropdown de sugerencias */}
+							<AnimatePresence>
+								{(suggestions.length > 0 || loadingSuggestions) && (
+									<motion.ul
+										initial={{ opacity: 0, y: -8 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -8 }}
+										transition={{ duration: 0.18 }}
+										className='absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg z-50 max-h-60 overflow-y-auto'
+									>
+										{loadingSuggestions ? (
+											<li className='p-2 text-gray-500'>Cargando...</li>
+										) : suggestions.length === 0 ? null : suggestions.map(book => (
+											<li
+												key={book.id}
+												className='p-2 hover:bg-gray-100 cursor-pointer text-sm'
+												onClick={() => {
+													const type = (book.type || '').toLowerCase();
+													const isTesis = [
+														'tesis',
+														'pasantía',
+														'pasantias',
+														'servicio comunitario'
+													].some(t => type.includes(t));
+													const path = isTesis ? '/tesis' : '/libros';
+													navigate(`${path}?search=${encodeURIComponent(book.title)}`);
+													setShowSearch(false);
+													setSearchValue('');
+												}}
+											>
+												{book.title}
+											</li>
+										))}
+									</motion.ul>
+								)}
+							</AnimatePresence>
+						</motion.div>
+					)}
+				</AnimatePresence>
 
 				{isConfigured && isAuthenticated && user ? (
 					<>

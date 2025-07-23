@@ -122,3 +122,34 @@
 #
 # 8. Se documentó todo el proceso, incluyendo hipótesis, pruebas, logs, errores encontrados y la solución final, para futuras referencias y para evitar errores similares en otros filtros.
 # ============================================= 
+
+// [IA] Cambios para implementar un buscador funcional en el Navbar:
+// 1. Agregar estado para mostrar/ocultar el input de búsqueda y para el valor del texto.
+// 2. Al hacer clic en el ícono de búsqueda, mostrar un input de texto.
+// 3. Permitir buscar libros por título (puede expandirse a autores, etc.).
+// 4. Al presionar Enter o hacer clic en un botón, redirigir a la página de libros con el filtro aplicado (por ahora, solo mostrar el input y capturar el texto).
+// 5. Documentar que la lógica de filtrado/redirección se puede mejorar en el futuro.
+// 6. Todo el contenido de este archivo está comentado para evitar errores en la ejecución. 
+
+// [IA] BookPages.tsx actualmente NO filtra los libros por el parámetro de búsqueda de la URL (?search=).
+// Se va a agregar la lógica para leer el parámetro 'search' y filtrar los libros por título (y opcionalmente autor) de forma insensible a mayúsculas y tildes. 
+
+// [IA] Se detectó el error 'Rendered more hooks than during the previous render' en Navbar.tsx.
+// Causa: El return condicional por 'loading' estaba antes de la declaración de algunos hooks (useCallback, useEffect).
+// Solución: Todos los hooks deben declararse antes de cualquier return condicional. Se reordenó el código para cumplir esta regla. 
+
+// [IA] Nuevo requerimiento: El buscador debe funcionar en todas las páginas y mostrar resultados de todos los libros, sin importar si son físicos, virtuales o tesis.
+// Al seleccionar una sugerencia, debe llevar a la página correspondiente (libros o tesis) según el tipo del libro.
+// Si el libro es de tipo 'Tesis', debe redirigir a /tesis?search=...; si es 'Físico' o 'Virtual', a /libros?search=... 
+
+// [IA] Ajuste: Al seleccionar un libro de tipo 'Tesis', 'Pasantía', 'Pasantias' o 'Servicio Comunitario', el buscador debe redirigir a /tesis?search=... y no a /libros.
+// Solo los libros de tipo 'Físico' o 'Virtual' deben ir a /libros?search=... 
+
+// [IA] Ajuste: El buscador debe filtrar dinámicamente las sugerencias y solo mostrar los libros que coincidan exactamente o parcialmente con el texto actual, ocultando los que ya no coinciden a medida que el usuario escribe. 
+
+// [IA] Mejora visual: Se agregará una animación de aparición/desaparición suave al input del buscador y al dropdown de sugerencias para que no desaparezcan de forma abrupta.
+// Se usará framer-motion para transiciones suaves. 
+
+// [IA] Se agregará la opción de eliminar y editar libros en el admin:
+// - Eliminar: botón para borrar un libro desde la interfaz.
+// - Editar: botón para abrir un formulario con los datos actuales del libro, permitiendo modificar cualquier campo y guardar los cambios en la base de datos. 

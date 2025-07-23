@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PreparedBook } from '../interfaces';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { CardBook } from '../components/products/CardBook';
 import { ContainerFilter } from '../components/products/ContainerFilter';
 import { useAuth } from '../hooks/useAuth';
@@ -10,6 +11,7 @@ import { fetchBooks } from '../services/bookService';
 export const BookPages = () => {
   const { isAuthenticated, isConfigured } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [books, setBooks] = useState<PreparedBook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +77,21 @@ export const BookPages = () => {
   let filteredBooks = books.filter(
     book => book.type === 'Físico' || book.type === 'Virtual'
   );
+
+  // Filtrar por parámetro de búsqueda en la URL
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search')?.trim() || '';
+  if (searchQuery) {
+    filteredBooks = filteredBooks.filter(book => {
+      const normalizedTitle = normalize(book.title);
+      const normalizedAuthor = normalize(book.authors || book.author || '');
+      const normalizedQuery = normalize(searchQuery);
+      return (
+        normalizedTitle.includes(normalizedQuery) ||
+        normalizedAuthor.includes(normalizedQuery)
+      );
+    });
+  }
 
   // Filtrar por carreras seleccionadas
   if (selectedSpecialities.length > 0) {
