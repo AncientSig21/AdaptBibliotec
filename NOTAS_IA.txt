@@ -156,6 +156,25 @@
 
 // [IA] Se agregará al formulario de agregar libro un input para subir archivos PDF (y otros), que se subirá a Supabase Storage y se guardará la URL pública en la base de datos (campo url_pdf). 
 
+// [2024-06-09] Brands.tsx: Ahora cada ícono de carrera es un enlace (Link de react-router-dom) que redirige a /libros?carrera=NombreCarrera al hacer click. Esto permitirá filtrar los libros por carrera en la página de libros. 
+
+// [2024-06-09] BookPages.tsx: Ahora, si existe el parámetro 'carrera' en la URL (por ejemplo, /libros?carrera=Ingenieria De Sistemas), la página filtra automáticamente los libros para mostrar solo los de esa carrera. 
+
+// [2024-06-09] BookPages.tsx: Ahora, al llegar desde Brands, se marca el checkbox de la carrera seleccionada automáticamente. Si el usuario desmarca el checkbox, se muestran todos los libros. Si el usuario interactúa con los filtros, la selección automática ya no se aplica hasta recargar o cambiar de URL.
+// [2024-06-09] BookPages.tsx: Ahora, si llegas desde Brands con una carrera que no está en la lista de filtros, se agrega temporalmente para que el checkbox se marque aunque no haya libros de esa carrera.
+
+// [2024-06-09] BookPages.tsx: Ahora, si el libro tiene fileUrl (PDF), se muestra una vista previa del PDF en un iframe dentro del modal de detalles.
+
+// [2024-06-09] BookPages.tsx: Ahora el visor PDF solo aparece cuando el usuario presiona el botón 'Visualizar libro' en el modal de detalles. Al abrir el modal, el visor está oculto por defecto.
+
+// [2024-06-09] TesisPages.tsx: Ahora el visor PDF solo aparece cuando el usuario presiona el botón 'Visualizar archivo' en el modal de detalles. Al abrir el modal, el visor está oculto por defecto, igual que en BookPages.
+
+// [2024-06-09] BookPages.tsx y TesisPages.tsx: El modal de visualización de PDF ahora es más grande (ancho y alto). Solo se abre al presionar 'Visualizar' o 'Visualizar archivo', no al hacer click en la tarjeta. Las acciones están debajo de los datos del libro.
+
+// [2024-06-09] BookPages.tsx y TesisPages.tsx: Ahora la visualización de PDF usa react-pdf con navegación por páginas (flechas) y sin controles de zoom, imprimir ni descargar. El visor ocupa un área amplia y solo muestra la página actual.
+
+// [2024-06-09] BookPages.tsx y TesisPages.tsx: El modal de PDF ahora es más pequeño (max-w-md, h-60vh), solo muestra el visor y un botón X, y se puede cerrar haciendo click fuera del modal.
+
 ---
 Fecha: 2025-07-23
 
@@ -178,3 +197,11 @@ Cambios realizados hasta el momento:
 - Ajustes en la visualización de la sinopsis y fragmentos en los modales de detalles.
 - Cambios en la navegación y comportamiento de enlaces activos y hover.
 - Todas las reversiones solicitadas para dejar la interfaz y lógica como el usuario lo pidió. 
+
+// [2024-06-09] BookPages.tsx: Ahora se muestran todos los libros excepto los de tipo Tesis, Servicio Comunitario y Pasantía(s), en vez de solo Físico o Virtual. 
+
+// [2024-06-09] BookPages.tsx: Ahora tampoco se muestran los libros de tipo Proyecto de Investigacion (además de Tesis, Servicio Comunitario y Pasantía(s)). 
+
+// [2024-06-09] CardBook.tsx: Ahora las opciones de 'Visualizar' (si hay PDF) y 'Reservar' (si es físico) están debajo de los datos del libro. Se eliminó el botón de 'ver detalles'. Al presionar 'Visualizar', el padre debe mostrar el PDF en un modal amplio. 
+
+// [2024-06-09] bookService.ts: Ahora fileUrl siempre será la URL pública completa del PDF en Supabase Storage, construyéndola si solo se tiene la ruta interna. Esto asegura que los PDFs se puedan visualizar correctamente en el visor. 

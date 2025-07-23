@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { fetchBooks } from '../services/bookService';
 import { ContainerFilter } from '../components/products/ContainerFilter';
 import { useAuth } from '../hooks/useAuth';
+import { PDFViewer } from '../components/products/PDFViewer';
+import { PreparedBook } from '../interfaces';
 
 export const TesisPages = () => {
   const [books, setBooks] = useState<TesisBook[]>([]);
@@ -13,6 +15,7 @@ export const TesisPages = () => {
   const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
   const [selectedBook, setSelectedBook] = useState<TesisBook | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
 
   const { isAuthenticated } = useAuth();
 
@@ -125,6 +128,7 @@ export const TesisPages = () => {
                   onViewDetails={() => {
                     setSelectedBook(book);
                     setIsModalOpen(true);
+                    setShowPdf(true); // Mostrar PDF directamente
                   }}
                 />
               ))}
@@ -140,37 +144,38 @@ export const TesisPages = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => {
+              setIsModalOpen(false);
+              setSelectedBook(null);
+            }} // Cerrar al hacer click fuera
           >
             <motion.div
-              className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative"
+              className="bg-white rounded-lg shadow-lg max-w-4xl w-full p-8 relative flex flex-col items-center"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2 }}
+              onClick={e => e.stopPropagation()} // Evitar que el click dentro cierre el modal
             >
               <button
                 onClick={() => {
                   setIsModalOpen(false);
                   setSelectedBook(null);
                 }}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl z-10"
               >
                 &times;
               </button>
-              <h3 className="text-xl font-bold mb-2 text-center">{selectedBook.title}</h3>
-              <p className="text-center text-gray-700 mb-2">Autor: {selectedBook.authors}</p>
-              <p className="text-lg font-semibold text-center mb-2 text-gray-800">Capítulo 1</p>
-              <p className="text-gray-700 whitespace-pre-line mb-4">{(selectedBook.fragment || '').replace(/^Capítulo 1:?\s*/i, '') || 'No hay fragmento disponible.'}</p>
-              {isAuthenticated ? (
-                <a
-                  href={selectedBook.fileUrl}
-                  download
-                  className="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700 transition"
-                >
-                  Descargar tesis
-                </a>
-              ) : (
-                <p className="text-center text-red-500 font-semibold">Debes iniciar sesión para descargar el libro.</p>
+              {/* Título y visor PDF, solo primera página */}
+              <h3 className="text-lg font-bold text-center w-full truncate">{selectedBook.title}</h3>
+              {showPdf && (
+                <div className="w-full text-center text-xs text-gray-500">Primera página</div>
+              )}
+              {selectedBook.fileUrl && showPdf && (
+                <div className="w-full h-[65vh] mb-4 flex items-center justify-center relative">
+                  <BookDetailsPopover book={selectedBook} />
+                  <PDFViewer fileUrl={selectedBook.fileUrl} onlyFirstPage />
+                </div>
               )}
             </motion.div>
           </motion.div>
@@ -179,3 +184,44 @@ export const TesisPages = () => {
     </div>
   );
 };
+
+// Popover de detalles del libro
+function BookDetailsPopover({ book }: { book: PreparedBook }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 flex items-center">
+      <button
+        className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-10 h-10 flex items-center justify-center shadow transition"
+        onClick={() => setOpen(o => !o)}
+        title="Ver detalles"
+      >
+        <span className="sr-only">Ver detalles</span>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M14 8l-4 4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.22 }}
+            className="mr-2 bg-white rounded-lg shadow-lg p-4 w-64 border border-gray-200 text-sm text-left right-full relative"
+            style={{ left: 'auto', right: '100%' }}
+          >
+            {/* Flecha visual */}
+            <span className="absolute top-1/2 right-[-3px] -translate-y-1/2 w-4 h-4">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="0,8 16,0 16,16" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+              </svg>
+            </span>
+            <div className="font-bold text-base mb-1 truncate">{book.title}</div>
+            <div className="mb-1"><span className="font-semibold">Tipo:</span> {book.type}</div>
+            <div className="mb-1"><span className="font-semibold">Especialidad:</span> {book.speciality}</div>
+            <div className="mb-1"><span className="font-semibold">Autor:</span> {book.authors || book.author}</div>
+            <div className="mb-1"><span className="font-semibold">Sinopsis:</span> <span className="block text-gray-600 max-h-24 overflow-y-auto whitespace-pre-line">{book.description?.content?.[0]?.content?.[0]?.text || 'Sin sinopsis.'}</span></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

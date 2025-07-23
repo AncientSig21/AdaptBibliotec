@@ -7,6 +7,7 @@ import { CardBook } from '../components/products/CardBook';
 import { ContainerFilter } from '../components/products/ContainerFilter';
 import { useAuth } from '../hooks/useAuth';
 import { fetchBooks } from '../services/bookService';
+import { PDFViewer } from '../components/products/PDFViewer';
 
 export const BookPages = () => {
   const { isAuthenticated, isConfigured } = useAuth();
@@ -19,6 +20,9 @@ export const BookPages = () => {
   const [selectedBook, setSelectedBook] = useState<PreparedBook | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSpecialities, setSelectedSpecialities] = useState<string[]>([]);
+  // Controlar si la selección de especialidad fue hecha por el usuario
+  const [userChangedSpeciality, setUserChangedSpeciality] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -49,11 +53,30 @@ export const BookPages = () => {
     );
   }, [books]);
 
+  useEffect(() => {
+    // Si hay un parámetro 'carrera' en la URL y el usuario no ha cambiado el filtro manualmente, seleccionarlo automáticamente
+    const searchParams = new URLSearchParams(location.search);
+    const carreraParam = searchParams.get('carrera');
+    if (!userChangedSpeciality) {
+      if (carreraParam) {
+        setSelectedSpecialities([carreraParam]);
+      } else {
+        setSelectedSpecialities([]); // Si no hay parámetro, mostrar todos
+      }
+    }
+  }, [location.search, userChangedSpeciality]);
+
+  // Handler para cambios en los filtros de especialidad
+  const handleSpecialitiesChange = (specialities: string[]) => {
+    setSelectedSpecialities(specialities);
+    setUserChangedSpeciality(true);
+  };
+
   // Generar lista dinámica de especialidades únicas a partir de los libros cargados
   const specialities = Array.from(new Set(books.map(book => book.speciality).filter(Boolean)));
 
   // Lista fija de especialidades para los filtros
-  const specialitiesForFilter = [
+  const specialitiesForFilterBase = [
     'Ingeniería De Sistemas',
     'Ingeniería Civil',
     'Ingeniería en Mantenimiento Mecánico',
@@ -62,6 +85,14 @@ export const BookPages = () => {
     'Ingeniería Eléctrica',
     'Arquitectura',
   ];
+
+  // Si hay parámetro 'carrera' en la URL y no está en la lista, agregarlo temporalmente
+  const searchParams = new URLSearchParams(location.search);
+  const carreraParam = searchParams.get('carrera');
+  let specialitiesForFilter = [...specialitiesForFilterBase];
+  if (carreraParam && !specialitiesForFilter.includes(carreraParam)) {
+    specialitiesForFilter.push(carreraParam);
+  }
 
   // Función para normalizar textos (ignorar mayúsculas y tildes)
   function normalize(str: string) {
@@ -73,13 +104,17 @@ export const BookPages = () => {
       .trim();
   }
 
-  // Solo mostrar libros físicos o virtuales
+  // Mostrar todos los libros excepto los de tipo Tesis, Servicio Comunitario, Pasantía(s) y Proyecto de Investigacion
   let filteredBooks = books.filter(
-    book => book.type === 'Físico' || book.type === 'Virtual'
+    book =>
+      book.type !== 'Tesis' &&
+      book.type !== 'Servicio Comunitario' &&
+      book.type !== 'Pasantía' &&
+      book.type !== 'Pasantias' &&
+      book.type !== 'Proyecto de Investigacion'
   );
 
   // Filtrar por parámetro de búsqueda en la URL
-  const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search')?.trim() || '';
   if (searchQuery) {
     filteredBooks = filteredBooks.filter(book => {
@@ -113,6 +148,7 @@ export const BookPages = () => {
   const handleViewDetails = (book: PreparedBook) => {
     setSelectedBook(book);
     setIsModalOpen(true);
+    setShowPdf(false); // Resetear visor PDF al abrir modal
   };
 
   const handleCloseModal = () => {
@@ -161,7 +197,7 @@ export const BookPages = () => {
         {/* FILTROS */}
         <ContainerFilter
           selectedSpecialities={selectedSpecialities}
-          onChange={setSelectedSpecialities}
+          onChange={handleSpecialitiesChange}
           specialities={specialitiesForFilter}
         />
 
@@ -188,7 +224,13 @@ export const BookPages = () => {
                       slug={book.slug}
                       speciality={book.speciality}
                       type={book.type}
-                      onViewDetails={() => handleViewDetails(book)}
+                      fragment={book.fragment}
+                      fileUrl={book.fileUrl}
+                      onViewDetails={() => {
+                        setSelectedBook(book);
+                        setIsModalOpen(true);
+                        setShowPdf(true); // Mostrar PDF directamente
+                      }}
                     />
                   </motion.div>
                 ))}
@@ -208,40 +250,79 @@ export const BookPages = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={handleCloseModal} // Cerrar al hacer click fuera
           >
             <motion.div
-              className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative"
+              className="bg-white rounded-lg shadow-lg max-w-4xl w-full p-8 relative flex flex-col items-center"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2 }}
+              onClick={e => e.stopPropagation()} // Evitar que el click dentro cierre el modal
             >
               <button
                 onClick={handleCloseModal}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl z-10"
               >
                 &times;
               </button>
-              <h3 className="text-xl font-bold mb-2 text-center">{selectedBook.title}</h3>
-              <p className="text-center text-gray-700 mb-2">Autor: {selectedBook.authors}</p>
-              <p className="text-lg font-semibold text-center mb-2 text-gray-800">Capítulo 1</p>
-              <p className="text-gray-700 whitespace-pre-line mb-4">{(selectedBook.fragment || '').replace(/^Capítulo 1:? 0*/i, '') || 'No hay fragmento disponible.'}</p>
-              {isAuthenticated ? (
-                <a
-                  href={selectedBook.fileUrl}
-                  download
-                  onClick={handleDownload}
-                  className="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700 transition"
-                >
-                  Descargar libro
-                </a>
-              ) : (
-                <p className="text-center text-red-500 font-semibold">Debes iniciar sesión para descargar el libro.</p>
+              {/* Título y visor PDF */}
+              <h3 className="text-lg font-bold text-center w-full truncate">{selectedBook.title}</h3>
+              {showPdf && (
+                <div className="w-full text-center text-xs text-gray-500">Página 1</div>
+              )}
+              {selectedBook.fileUrl && showPdf && (
+                <div className="w-full h-[65vh] mb-4 flex items-center justify-center relative">
+                  {/* Botón flotante para detalles */}
+                  <BookDetailsPopover book={selectedBook} />
+                  <PDFViewer fileUrl={selectedBook.fileUrl} />
+                </div>
               )}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+// Popover de detalles del libro
+function BookDetailsPopover({ book }: { book: PreparedBook }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 flex items-center">
+      <button
+        className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-10 h-10 flex items-center justify-center shadow transition"
+        onClick={() => setOpen(o => !o)}
+        title="Ver detalles"
+      >
+        <span className="sr-only">Ver detalles</span>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M14 8l-4 4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.22 }}
+            className="mr-2 bg-white rounded-lg shadow-lg p-4 w-64 border border-gray-200 text-sm text-left right-full relative"
+            style={{ left: 'auto', right: '100%' }}
+          >
+            {/* Flecha visual */}
+            <span className="absolute top-1/2 right-[-3px] -translate-y-1/2 w-4 h-4">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="0,8 16,0 16,16" fill="#fff" stroke="#e5e7eb" strokeWidth="1" />
+              </svg>
+            </span>
+            <div className="font-bold text-base mb-1 truncate">{book.title}</div>
+            <div className="mb-1"><span className="font-semibold">Tipo:</span> {book.type}</div>
+            <div className="mb-1"><span className="font-semibold">Especialidad:</span> {book.speciality}</div>
+            <div className="mb-1"><span className="font-semibold">Autor:</span> {book.authors || book.author}</div>
+            <div className="mb-1"><span className="font-semibold">Sinopsis:</span> <span className="block text-gray-600 max-h-24 overflow-y-auto whitespace-pre-line">{book.description?.content?.[0]?.content?.[0]?.text || 'Sin sinopsis.'}</span></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

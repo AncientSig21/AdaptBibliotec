@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const brands = [
   {
     image: '/img/brands/architecture-building-castle-svgrepo-com.svg',
@@ -47,19 +49,20 @@ export const Brands = () => {
 
       <div className="flex flex-wrap justify-center gap-6 mt-8 max-w-full">
         {brands.map((brand, index) => (
-          <div
+          <Link
             key={index}
-            className="w-20 flex flex-col items-center justify-center"
+            to={`/libros?carrera=${encodeURIComponent(brand.label)}`}
+            className="w-20 flex flex-col items-center justify-center hover:scale-105 transition-transform"
           >
             <img
               src={brand.image}
               alt={brand.alt}
-              className="max-w-full max-h-16 object-contain"
+              className="max-w-full max-h-16 object-contain cursor-pointer"
             />
             <span className="mt-2 text-center text-sm font-medium">
               {brand.label}
             </span>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

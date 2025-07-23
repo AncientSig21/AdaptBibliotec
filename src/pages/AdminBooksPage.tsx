@@ -66,18 +66,24 @@ const AdminBooksPage = () => {
   const [tutorTesis, setTutorTesis] = useState('');
   // Estado para la lista de tutores
   const [tutores, setTutores] = useState<{ id: number; nombre: string }[]>([]);
+  // Estado para agregar tutor
+  const [showAddTutor, setShowAddTutor] = useState(false);
+  const [nuevoNombreTutor, setNuevoNombreTutor] = useState('');
+  const [nuevoApellidoTutor, setNuevoApellidoTutor] = useState('');
+  const [addTutorLoading, setAddTutorLoading] = useState(false);
+  const [addTutorError, setAddTutorError] = useState<string | null>(null);
 
   // Obtener lista de libros
   const fetchLibros = async () => {
     setLoading(true);
     setError(null);
-    let selectFields = 'id_libro, titulo, sinopsis, fecha_publicacion, url_portada, tipo, especialidad';
+    let selectFields = 'id_libro, titulo, sinopsis, fecha_publicacion, url_portada, tipo, especialidad, libros_virtuales:libros_virtuales(direccion_del_libro)';
     let { data, error } = await supabase
       .from('Libros')
       .select(selectFields);
     // Si da error por 'tipo', intenta con 'type'
     if (error && error.message && error.message.includes('tipo')) {
-      selectFields = 'id_libro, titulo, sinopsis, fecha_publicacion, url_portada, type, especialidad';
+      selectFields = 'id_libro, titulo, sinopsis, fecha_publicacion, url_portada, type, especialidad, libros_virtuales:libros_virtuales(direccion_del_libro)';
       ({ data, error } = await supabase
         .from('Libros')
         .select(selectFields));
@@ -93,7 +99,12 @@ const AdminBooksPage = () => {
       setError('Error al obtener los libros');
       setLibros([]);
     } else {
-      setLibros(data as unknown as Libro[] || []);
+      // Asociar la URL del PDF si existe
+      const librosConPdf = (data as any[]).map(libro => ({
+        ...libro,
+        url_pdf: libro.libros_virtuales && libro.libros_virtuales.length > 0 ? libro.libros_virtuales[0].direccion_del_libro : ''
+      }));
+      setLibros(librosConPdf);
     }
     setLoading(false);
   };
@@ -216,7 +227,15 @@ const AdminBooksPage = () => {
     const titulo = formData.get('titulo')?.toString().trim() || '';
     const sinopsis = formData.get('sinopsis')?.toString().trim() || '';
     const url_portada = formData.get('url_portada')?.toString().trim() || '';
-    const tipo = formData.get('type')?.toString().trim() || '';
+    // Obtener tipo desde los checkboxes
+    let tipo = '';
+    if (tipoFisico && tipoVirtual) {
+      tipo = 'Fisico y Virtual';
+    } else if (tipoFisico) {
+      tipo = 'Fisico';
+    } else if (tipoVirtual) {
+      tipo = 'Virtual';
+    }
     const especialidad = formData.get('especialidad')?.toString().trim() || '';
     const fecha_publicacion = formData.get('fecha_publicacion')?.toString() || '';
     if (!titulo || !sinopsis || !tipo || !especialidad || !fecha_publicacion) {
@@ -251,6 +270,21 @@ const AdminBooksPage = () => {
     } else {
       setEditLibro(null);
       fetchLibros();
+    }
+    // Subir PDF si se seleccionó uno nuevo
+    const pdfFile = formData.get('url_pdf') as File | null;
+    let url_pdf = '';
+    if (pdfFile && pdfFile.size > 0) {
+      url_pdf = (await uploadPdfToSupabase(pdfFile)) || '';
+    }
+    // Si se subió un nuevo PDF, actualizar o insertar en libros_virtuales
+    if (url_pdf) {
+      // Usar upsert para insertar o actualizar la relación en libros_virtuales
+      await supabase
+        .from('libros_virtuales')
+        .upsert([
+          { libro_id: editLibro.id_libro, direccion_del_libro: url_pdf }
+        ], { onConflict: 'libro_id' });
     }
     setEditLoading(false);
   };
@@ -359,6 +393,63 @@ const AdminBooksPage = () => {
                       <option key={t.id} value={t.id}>{t.nombre}</option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    className="mt-2 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs font-medium w-fit"
+                    onClick={() => setShowAddTutor(v => !v)}
+                  >
+                    {showAddTutor ? 'Cancelar' : 'Agregar tutor'}
+                  </button>
+                  {showAddTutor && (
+                    <div className="flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Nombre del tutor"
+                        value={nuevoNombreTutor}
+                        onChange={e => setNuevoNombreTutor(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Apellido del tutor"
+                        value={nuevoApellidoTutor}
+                        onChange={e => setNuevoApellidoTutor(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1"
+                      />
+                      {addTutorError && <span className="text-red-500 text-xs">{addTutorError}</span>}
+                      <button
+                        type="button"
+                        className="bg-cyan-600 text-white px-3 py-1 rounded hover:bg-cyan-700 text-xs font-medium"
+                        disabled={addTutorLoading}
+                        onClick={async () => {
+                          setAddTutorError(null);
+                          if (!nuevoNombreTutor.trim() || !nuevoApellidoTutor.trim()) {
+                            setAddTutorError('Nombre y apellido requeridos');
+                            return;
+                          }
+                          setAddTutorLoading(true);
+                          // Guardar tutor en la tabla 'tutor'
+                          const nombreCompleto = `${nuevoNombreTutor.trim()} ${nuevoApellidoTutor.trim()}`;
+                          const { data, error } = await supabase.from('tutor').insert([{ nombre: nombreCompleto }]).select();
+                          if (error) {
+                            setAddTutorError('Error al agregar tutor');
+                            setAddTutorLoading(false);
+                            return;
+                          }
+                          if (data && data.length > 0) {
+                            setTutores(prev => [...prev, { id: data[0].id, nombre: nombreCompleto }]);
+                            setTutorTesis(data[0].id.toString());
+                            setShowAddTutor(false);
+                            setNuevoNombreTutor('');
+                            setNuevoApellidoTutor('');
+                          }
+                          setAddTutorLoading(false);
+                        }}
+                      >
+                        Guardar tutor
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -451,13 +542,149 @@ const AdminBooksPage = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full text-center">
               <h3 className="text-xl font-bold mb-4">Editar libro</h3>
-              <form onSubmit={handleEditLibro} className="flex flex-col gap-3 text-left">
+              <form onSubmit={handleEditLibro} className="flex flex-col gap-3 text-left" encType="multipart/form-data">
+                <label className="font-medium">Título:</label>
                 <input type="text" name="titulo" defaultValue={editLibro.titulo} required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <label className="font-medium">Sinopsis:</label>
                 <textarea name="sinopsis" defaultValue={editLibro.sinopsis} required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 resize-none min-h-[80px]" />
+                <label className="font-medium">URL de la portada (opcional):</label>
                 <input type="url" name="url_portada" defaultValue={editLibro.url_portada || ''} placeholder="URL de la portada (opcional)" className="border border-gray-300 rounded-lg px-4 py-2" />
-                <input type="text" name="type" defaultValue={editLibro.type || ''} required placeholder="Tipo (Físico, Virtual, Tesis, etc.)" className="border border-gray-300 rounded-lg px-4 py-2" />
-                <input type="text" name="especialidad" defaultValue={editLibro.especialidad || ''} required placeholder="Especialidad" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <label className="font-medium">Fecha de publicación:</label>
                 <input type="date" name="fecha_publicacion" defaultValue={editLibro.fecha_publicacion ? editLibro.fecha_publicacion.substring(0, 10) : ''} required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <label className="font-medium">Archivo PDF (opcional):</label>
+                <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white w-full" />
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Tipo de libro:</label>
+                  <div className="flex gap-4 flex-wrap">
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={tipoFisico}
+                        onChange={e => setTipoFisico(e.target.checked)}
+                      /> Físico
+                    </label>
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={tipoVirtual}
+                        onChange={e => setTipoVirtual(e.target.checked)}
+                      /> Virtual
+                    </label>
+                  </div>
+                </div>
+                {tipoFisico && (
+                  <div className="flex flex-col gap-1">
+                    <label className="font-medium">Cantidad de libros físicos:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={cantidadFisico}
+                      onChange={e => setCantidadFisico(e.target.value)}
+                      className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                      placeholder="Cantidad de ejemplares físicos"
+                    />
+                  </div>
+                )}
+                {/* Campos condicionales para Tesis o Proyecto de Investigación */}
+                {(tipoTesis || tipoProyecto) && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                      <label className="font-medium">Período académico:</label>
+                      <input
+                        type="text"
+                        required
+                        value={periodoTesis}
+                        onChange={e => setPeriodoTesis(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                        placeholder="Ej: 2023-2024"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="font-medium">Tutor:</label>
+                      <select
+                        required
+                        value={tutorTesis}
+                        onChange={e => setTutorTesis(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                      >
+                        <option value="">Selecciona un tutor</option>
+                        {tutores.map(t => (
+                          <option key={t.id} value={t.id}>{t.nombre}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="mt-2 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs font-medium w-fit"
+                        onClick={() => setShowAddTutor(v => !v)}
+                      >
+                        {showAddTutor ? 'Cancelar' : 'Agregar tutor'}
+                      </button>
+                      {showAddTutor && (
+                        <div className="flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded border border-gray-200">
+                          <input
+                            type="text"
+                            placeholder="Nombre del tutor"
+                            value={nuevoNombreTutor}
+                            onChange={e => setNuevoNombreTutor(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Apellido del tutor"
+                            value={nuevoApellidoTutor}
+                            onChange={e => setNuevoApellidoTutor(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1"
+                          />
+                          {addTutorError && <span className="text-red-500 text-xs">{addTutorError}</span>}
+                          <button
+                            type="button"
+                            className="bg-cyan-600 text-white px-3 py-1 rounded hover:bg-cyan-700 text-xs font-medium"
+                            disabled={addTutorLoading}
+                            onClick={async () => {
+                              setAddTutorError(null);
+                              if (!nuevoNombreTutor.trim() || !nuevoApellidoTutor.trim()) {
+                                setAddTutorError('Nombre y apellido requeridos');
+                                return;
+                              }
+                              setAddTutorLoading(true);
+                              // Guardar tutor en la tabla 'tutor'
+                              const nombreCompleto = `${nuevoNombreTutor.trim()} ${nuevoApellidoTutor.trim()}`;
+                              const { data, error } = await supabase.from('tutor').insert([{ nombre: nombreCompleto }]).select();
+                              if (error) {
+                                setAddTutorError('Error al agregar tutor');
+                                setAddTutorLoading(false);
+                                return;
+                              }
+                              if (data && data.length > 0) {
+                                setTutores(prev => [...prev, { id: data[0].id, nombre: nombreCompleto }]);
+                                setTutorTesis(data[0].id.toString());
+                                setShowAddTutor(false);
+                                setNuevoNombreTutor('');
+                                setNuevoApellidoTutor('');
+                              }
+                              setAddTutorLoading(false);
+                            }}
+                          >
+                            Guardar tutor
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {/* Reemplazar input de especialidad por un select */}
+                <label className="font-medium">Especialidad:</label>
+                <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white">
+                  <option value="">Selecciona una especialidad</option>
+                  <option value="Arquitectura">Arquitectura</option>
+                  <option value="Ingenieria Civil">Ingenieria Civil</option>
+                  <option value="Ingenieria en Mantenimiento Mecanico">Ingenieria en Mantenimiento Mecanico</option>
+                  <option value="Ingenieria Electronica">Ingenieria Electronica</option>
+                  <option value="Ingenieria Industrial">Ingenieria Industrial</option>
+                  <option value="Ingenieria Electrica">Ingenieria Electrica</option>
+                  <option value="Ingenieria en Sistemas">Ingenieria en Sistemas</option>
+                </select>
                 {editError && <p className="text-red-500 text-sm">{editError}</p>}
                 <div className="flex gap-2 justify-end mt-2">
                   <button type="button" onClick={() => setEditLibro(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>

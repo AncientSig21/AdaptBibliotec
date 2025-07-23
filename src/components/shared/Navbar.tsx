@@ -103,7 +103,7 @@ export const Navbar = () => {
 				.trim();
 		const query = normalize(searchValue);
 		const filtered = allBooks.filter(book =>
-			normalize(book.title).startsWith(query)
+			normalize(book.title).includes(query)
 		);
 		setSuggestions(filtered.slice(0, 6)); // máximo 6 sugerencias
 	}, [searchValue, allBooks]);
@@ -244,7 +244,7 @@ export const Navbar = () => {
 														'servicio comunitario'
 													].some(t => type.includes(t));
 													const path = isTesis ? '/tesis' : '/libros';
-													navigate(`${path}?search=${encodeURIComponent(book.title)}`);
+													navigate(`${path}?carrera=${encodeURIComponent(book.speciality || '')}`);
 													setShowSearch(false);
 													setSearchValue('');
 												}}

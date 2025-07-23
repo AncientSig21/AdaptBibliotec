@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 
 interface Props {
 	img: string;
@@ -10,10 +11,14 @@ interface Props {
 	type: string;
 	fragment?: string;
 	fileUrl?: string;
-	onViewDetails?: () => void; // Nueva prop opcional
+	onViewDetails?: () => void; // Visualizar PDF
+	onShowDetails?: () => void; // Ver detalles
 }
 
-export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails }: Props) => {
+export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails, onShowDetails }: Props) => {
+	const [showNoPdf, setShowNoPdf] = useState(false);
+	let hideTimeout: NodeJS.Timeout;
+
 	return (
 		<div className='flex flex-col gap-6 relative border p-4 rounded-lg shadow-md'>
 			<div className='flex relative group overflow-hidden '>
@@ -24,14 +29,6 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 						className='object-contain h-full w-full'
 					/>
 				</div>
-
-				<button
-					onClick={onViewDetails}
-					className='bg-white border border-slate-200 absolute w-full bottom-0 py-3 rounded-3xl flex items-center justify-center gap-1 text-sm font-medium hover:bg-stone-100 translate-y-[100%] transition-all duration-300 group-hover:translate-y-0'
-					title={`slug: ${slug}`}
-				>
-					+ Ver detalles
-				</button>
 			</div>
 
 			<div className='flex flex-col gap-1 items-center'>
@@ -39,7 +36,38 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 				<p className='text-[13px] text-gray-600'>Especialidad: {speciality}</p>
 				<p className='text-[13px] text-gray-600'>Tipo: {type}</p>
 				{fragment && <p className='text-[12px] text-gray-400 truncate w-full' title={fragment}>Fragmento: {fragment.slice(0, 30)}...</p>}
-				{fileUrl && <a href={fileUrl} className='text-blue-500 text-xs underline break-all' target='_blank' rel='noopener noreferrer'>Ver archivo</a>}
+
+				<div className='flex gap-2 mt-2 relative'>
+					{/* Botón Visualizar */}
+					<button
+						onClick={() => {
+							if (fileUrl && onViewDetails) {
+								onViewDetails();
+							} else {
+								setShowNoPdf(true);
+								clearTimeout(hideTimeout);
+								hideTimeout = setTimeout(() => setShowNoPdf(false), 2000);
+							}
+						}}
+						className={`px-3 py-1 rounded text-xs font-medium transition bg-green-600 text-white hover:bg-green-700`}
+					>
+						Visualizar
+					</button>
+					{showNoPdf && (
+						<div className="absolute left-1/2 -translate-x-1/2 -top-10 bg-gray-800 text-white text-xs rounded px-3 py-2 shadow z-20 animate-fade-in">
+							Este libro no cuenta con un PDF para visualizar.
+							<span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-3 h-3 bg-gray-800 rotate-45"></span>
+						</div>
+					)}
+					{/* Botón Reservar solo si es físico */}
+					{type === 'Físico' && (
+						<button
+							className='bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-xs font-medium'
+						>
+							Reservar
+						</button>
+					)}
+				</div>
 			</div>
 		</div>
 	);

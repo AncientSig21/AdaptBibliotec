@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase/client';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell, TooltipProps } from 'recharts';
 
 const AdminStatsPage = () => {
   const [totalLibros, setTotalLibros] = useState<number | null>(null);
@@ -42,6 +43,24 @@ const AdminStatsPage = () => {
     fetchStats();
   }, []);
 
+  // Tooltip personalizado para la gráfica
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
+    if (active && payload && payload.length) {
+      const label = payload[0].payload.name;
+      let desc = '';
+      if (label === 'Libros Totales') desc = 'Cantidad de libros totales';
+      else if (label === 'Tesis') desc = 'Cantidad de tesis';
+      else if (label === 'Proyectos de Investigación') desc = 'Cantidad de proyectos de investigación';
+      return (
+        <div className="bg-white p-2 rounded shadow text-xs border border-gray-200">
+          <div className="font-semibold mb-1">{label}</div>
+          <div>{desc}: <span className="font-bold">{payload[0].value}</span></div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-4xl font-bold mb-8 text-center">Dashboard de Administrador</h1>
@@ -65,6 +84,26 @@ const AdminStatsPage = () => {
             {loading ? '...' : error ? 'Error' : totalProyectos}
           </span>
         </div>
+      </div>
+      {/* Gráfica de barras */}
+      <div className="bg-white rounded shadow p-6 max-w-2xl mx-auto">
+        <h2 className="text-xl font-semibold mb-4 text-center">Gráfica de Libros, Tesis y Proyectos</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={[
+            { name: 'Libros Totales', value: totalLibros || 0, color: '#2563eb' },
+            { name: 'Tesis', value: totalTesis || 0, color: '#22c55e' },
+            { name: 'Proyectos de Investigación', value: totalProyectos || 0, color: '#f59e42' },
+          ]}>
+            <XAxis dataKey="name" tick={{ fontSize: 14 }} />
+            <YAxis allowDecimals={false} />
+            <Tooltip content={CustomTooltip} />
+            <Bar dataKey="value">
+              <Cell key="libros" fill="#2563eb" />
+              <Cell key="tesis" fill="#22c55e" />
+              <Cell key="proyectos" fill="#f59e42" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
       {error && <div className="text-center text-red-500">{error}</div>}
     </div>

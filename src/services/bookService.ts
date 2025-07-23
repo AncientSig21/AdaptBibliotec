@@ -15,7 +15,14 @@ export const fetchBooks = async () => {
     // Si es tesis, buscar el PDF en libros_virtuales
     let fileUrl = '';
     if (book.tipo === 'Tesis' && book.libros_virtuales && book.libros_virtuales.length > 0) {
-      fileUrl = book.libros_virtuales[0].direccion_del_libro;
+      const rawUrl = book.libros_virtuales[0].direccion_del_libro;
+      // Si la URL ya es pública, usarla tal cual. Si es solo la ruta, construir la URL pública.
+      if (rawUrl && rawUrl.startsWith('http')) {
+        fileUrl = rawUrl;
+      } else if (rawUrl) {
+        // Construir la URL pública
+        fileUrl = `https://ueufprdedokleqlyooyq.supabase.co/storage/v1/object/public/${rawUrl}`;
+      }
     }
     return {
       id: book.id_libro,
