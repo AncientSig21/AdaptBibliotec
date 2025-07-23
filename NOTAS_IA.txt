@@ -153,3 +153,5 @@
 // [IA] Se agregará la opción de eliminar y editar libros en el admin:
 // - Eliminar: botón para borrar un libro desde la interfaz.
 // - Editar: botón para abrir un formulario con los datos actuales del libro, permitiendo modificar cualquier campo y guardar los cambios en la base de datos. 
+
+// [IA] Se agregará al formulario de agregar libro un input para subir archivos PDF (y otros), que se subirá a Supabase Storage y se guardará la URL pública en la base de datos (campo url_pdf). 

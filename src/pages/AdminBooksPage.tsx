@@ -9,6 +9,7 @@ interface Libro {
   url_portada?: string;
   especialidad?: string;
   fecha_publicacion?: string;
+  url_pdf?: string;
 }
 
 // Función para subir imagen a Supabase Storage y obtener la URL pública
@@ -22,6 +23,20 @@ async function uploadImageToSupabase(file: File): Promise<string | null> {
   }
   // Obtener la URL pública
   const { publicUrl } = supabase.storage.from('portadas').getPublicUrl(fileName).data;
+  return publicUrl || null;
+}
+
+// Función para subir PDF a Supabase Storage y obtener la URL pública
+async function uploadPdfToSupabase(file: File): Promise<string | null> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const { data, error } = await supabase.storage.from('libros').upload(fileName, file);
+  if (error) {
+    alert('Error al subir el PDF: ' + error.message);
+    return null;
+  }
+  // Obtener la URL pública
+  const { publicUrl } = supabase.storage.from('libros').getPublicUrl(fileName).data;
   return publicUrl || null;
 }
 
@@ -93,6 +108,11 @@ const AdminBooksPage = () => {
     const url_portada = formData.get('url_portada')?.toString().trim() || '';
     const tipo = formData.get('tipo')?.toString().trim() || '';
     const especialidad = formData.get('especialidad')?.toString().trim() || '';
+    const pdfFile = formData.get('url_pdf') as File | null;
+    let url_pdf = '';
+    if (pdfFile && pdfFile.size > 0) {
+      url_pdf = (await uploadPdfToSupabase(pdfFile)) || '';
+    }
     if (!titulo || !autor || !fecha_publicacion || !sinopsis || !tipo || !especialidad) {
       setAddError('Completa todos los campos obligatorios');
       setAddLoading(false);
@@ -100,7 +120,7 @@ const AdminBooksPage = () => {
     }
     const { error } = await supabase
       .from('Libros')
-      .insert([{ titulo, sinopsis, fecha_publicacion, url_portada: url_portada || null, tipo, especialidad }]);
+      .insert([{ titulo, sinopsis, fecha_publicacion, url_portada: url_portada || null, tipo, especialidad, url_pdf: url_pdf || null }]);
     if (error) {
       setAddError('Error al agregar libro');
     } else {
@@ -207,6 +227,10 @@ const AdminBooksPage = () => {
                   if (input && url) input.value = url;
                 }} />
               </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-700">Archivo PDF (opcional):</label>
+              <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
             </div>
             <input type="text" name="tipo" required placeholder="Tipo (Físico, Virtual, Tesis, etc.)" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
             <input type="text" name="especialidad" required placeholder="Especialidad" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
