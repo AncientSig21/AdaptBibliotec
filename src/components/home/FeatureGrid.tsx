@@ -12,8 +12,8 @@ export const FeatureGrid = () => {
 				<GoDownload size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Descarga sin limites</p>
-					<p className='text-sm'>En la mayoria de nuestros libros</p>
+					<p className='font-semibold'>Descarga sin límites</p>
+					<p className='text-sm'>En la mayoría de nuestros libros</p>
 				</div>
 			</div>
 
@@ -23,7 +23,7 @@ export const FeatureGrid = () => {
 				<div className='space-y-1'>
 					<p className='font-semibold'>Variedad de libros</p>
 					<p className='text-sm'>
-						Para todas las especialidades de nuestra institucion
+						Para todas las especialidades de nuestra institución
 					</p>
 				</div>
 			</div>
@@ -32,7 +32,7 @@ export const FeatureGrid = () => {
 				<CiBookmark size={40} className='text-slate-600' />
 
 				<div className='space-y-1'>
-					<p className='font-semibold'>Reservacion</p>
+					<p className='font-semibold'>Reservación</p>
 					<p className='text-sm'>
 						puedes reservar un libro para su disfrute
 					</p>
@@ -45,7 +45,7 @@ export const FeatureGrid = () => {
 				<div className='space-y-1'>
 					<p className='font-semibold'>Tesis</p>
 					<p className='text-sm'>
-						Previsualizacion de tesis
+						Previsualización de tesis
 					</p>
 				</div>
 			</div>

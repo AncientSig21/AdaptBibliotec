@@ -34,9 +34,9 @@ export const HomePage = () => {
 
 			<Brands />
 			{loading ? (
-				<p className="text-center text-gray-500 text-lg my-8">Cargando libros...</p>
+				<p className="text-center text-gray-500 text-lg my-8">Cargando libros…</p>
 			) : error ? (
-				<p className="text-center text-red-500 text-lg my-8">{error}</p>
+				<p className="text-center text-red-500 text-lg my-8">{error.replace('cargar los libros', 'cargar los libros')}</p>
 			) : (
 				<BookGrid
 					title="Libros disponibles"

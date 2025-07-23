@@ -155,3 +155,26 @@
 // - Editar: botón para abrir un formulario con los datos actuales del libro, permitiendo modificar cualquier campo y guardar los cambios en la base de datos. 
 
 // [IA] Se agregará al formulario de agregar libro un input para subir archivos PDF (y otros), que se subirá a Supabase Storage y se guardará la URL pública en la base de datos (campo url_pdf). 
+
+---
+Fecha: 2025-07-23
+
+Cambios realizados hasta el momento:
+
+- Análisis y sugerencias para el área de administrador.
+- Solución de problemas con políticas RLS en Supabase (libros, libros_virtuales, proyecto_investigacion, libros_fisicos).
+- Corrección de la lógica para guardar PDFs solo en libros_virtuales.
+- Corrección de la lógica para guardar autores y especialidades.
+- Mejoras visuales en el formulario de libros (selects, checkboxes, campos condicionales).
+- Implementación de select de tutores y carga dinámica desde la base de datos.
+- Implementación de campos condicionales para Tesis y Proyecto de Investigación.
+- Corrección de filtros y visualización de proyectos de investigación.
+- Corrección de acentos y ortografía en textos de la página principal y componentes.
+- Actualización de la paleta de colores en Tailwind y pruebas de aplicación en navbar, footer y tarjetas.
+- Mejoras visuales en el logo (inclusión de imagen, colores en versión móvil).
+- Mejoras y reversiones en el footer (eliminación de enlaces, iconos de redes sociales, fondo de color).
+- Implementación y reversión de fondos de pantalla en login, registro y banner.
+- Cambios y reversiones en bordes y colores de tarjetas de libros.
+- Ajustes en la visualización de la sinopsis y fragmentos en los modales de detalles.
+- Cambios en la navegación y comportamiento de enlaces activos y hover.
+- Todas las reversiones solicitadas para dejar la interfaz y lógica como el usuario lo pidió. 

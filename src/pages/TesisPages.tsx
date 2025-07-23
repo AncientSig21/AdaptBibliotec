@@ -20,7 +20,7 @@ export const TesisPages = () => {
   const specialitiesForFilter = [
     'Tesis',
     'Pasantías',
-    'Servicio Comunitario',
+    'Proyecto de Investigacion',
   ];
 
   // Función para normalizar textos (ignorar mayúsculas y tildes)
@@ -35,11 +35,11 @@ export const TesisPages = () => {
   // Log para ver los tipos normalizados
   console.log('Tipos normalizados:', books.map(b => b.type && normalize(b.type)));
 
-  // Filtrar solo libros de tipo Tesis, Servicio Comunitario o Pasantía(s)
+  // Filtrar solo libros de tipo Tesis, Proyecto de Investigacion o Pasantía(s)
   let filteredBooks = books.filter(
     book =>
       book.type === 'Tesis' ||
-      book.type === 'Servicio Comunitario' ||
+      book.type === 'Proyecto de Investigacion' ||
       book.type === 'Pasantía' ||
       book.type === 'Pasantias'
   );
@@ -122,7 +122,10 @@ export const TesisPages = () => {
                   type={book.type}
                   fragment={book.fragment}
                   fileUrl={book.fileUrl}
-                  onViewDetails={() => setSelectedBook(book)}
+                  onViewDetails={() => {
+                    setSelectedBook(book);
+                    setIsModalOpen(true);
+                  }}
                 />
               ))}
             </div>

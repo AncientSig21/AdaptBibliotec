@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { socialLinks } from '../../constants/links';
+import { FaFacebook } from 'react-icons/fa6';
+import React from 'react';
 
 export const Footer = () => {
 	return (
@@ -18,12 +20,6 @@ export const Footer = () => {
 
 				<nav className='flex flex-col gap-2 text-xs font-medium'>
 					<Link to='/Libros'>Libros</Link>
-					<Link to='#' className='text-slate-300 hover:text-white'>
-						Políticas de privacidad
-					</Link>
-					<Link to='#' className='text-slate-300 hover:text-white'>
-						Términos de uso
-					</Link>
 				</nav>
 			</div>
 
@@ -38,15 +34,24 @@ export const Footer = () => {
 				</p>
 
 				<div className='flex'>
+					<a
+						href='https://www.facebook.com/psmmaturin'
+						target='_blank'
+						rel='noreferrer'
+						className='text-slate-300 border border-gray-8000 w-full h-full py-3.5 flex items-center justify-center transition-all hover:bg-white hover:text-gray-950 mr-2'
+						title='Facebook'
+					>
+						<FaFacebook size={24} />
+					</a>
 					{socialLinks.map(link => (
 						<a
 							key={link.id}
-							href={link.href}
+							href={link.title === 'Instagram' ? 'https://www.instagram.com/psmmaturin/' : link.href}
 							target='_blank'
 							rel='noreferrer'
 							className='text-slate-300 border border-gray-8000 w-full h-full py-3.5 flex items-center justify-center transition-all hover:bg-white hover:text-gray-950'
 						>
-							{link.icon}
+							{link.title === 'Instagram' ? React.cloneElement(link.icon, { size: 32 }) : link.icon}
 						</a>
 					))}
 				</div>

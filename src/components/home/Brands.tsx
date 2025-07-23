@@ -27,7 +27,7 @@ const brands = [
   {
     image: '/img/brands/toolbox-svgrepo-com.svg',
     alt: 'Mantenimiento Mecánico',
-    label: 'Ingenierie En Mantenimiento Mecánico',
+    label: 'Ingeniería en Mantenimiento Mecánico',
   },
   {
     image: '/img/brands/voltmeter-svgrepo-com.svg',

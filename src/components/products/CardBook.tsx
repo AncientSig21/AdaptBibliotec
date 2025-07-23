@@ -36,7 +36,6 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 
 			<div className='flex flex-col gap-1 items-center'>
 				<p className='text-[15px] font-semibold'>{title}</p>
-				<p className='text-[14px] text-gray-800 font-medium mb-1'>Autor: {authors}</p>
 				<p className='text-[13px] text-gray-600'>Especialidad: {speciality}</p>
 				<p className='text-[13px] text-gray-600'>Tipo: {type}</p>
 				{fragment && <p className='text-[12px] text-gray-400 truncate w-full' title={fragment}>Fragmento: {fragment.slice(0, 30)}...</p>}

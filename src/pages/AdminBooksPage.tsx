@@ -21,8 +21,8 @@ async function uploadImageToSupabase(file: File): Promise<string | null> {
     alert('Error al subir la imagen: ' + error.message);
     return null;
   }
-  // Obtener la URL pública
-  const { publicUrl } = supabase.storage.from('portadas').getPublicUrl(fileName).data;
+  // Obtener la URL pública del mismo bucket donde se subió
+  const { publicUrl } = supabase.storage.from('fotos.portada').getPublicUrl(fileName).data;
   return publicUrl || null;
 }
 
@@ -55,6 +55,17 @@ const AdminBooksPage = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [selectedLibroId, setSelectedLibroId] = useState<number | null>(null);
+  // Estado para los checkboxes de tipo
+  const [tipoFisico, setTipoFisico] = useState(false);
+  const [tipoVirtual, setTipoVirtual] = useState(false);
+  const [tipoTesis, setTipoTesis] = useState(false);
+  const [tipoProyecto, setTipoProyecto] = useState(false);
+  // Estados adicionales para campos condicionales
+  const [cantidadFisico, setCantidadFisico] = useState('');
+  const [periodoTesis, setPeriodoTesis] = useState('');
+  const [tutorTesis, setTutorTesis] = useState('');
+  // Estado para la lista de tutores
+  const [tutores, setTutores] = useState<{ id: number; nombre: string }[]>([]);
 
   // Obtener lista de libros
   const fetchLibros = async () => {
@@ -91,6 +102,15 @@ const AdminBooksPage = () => {
     fetchLibros();
   }, []);
 
+  useEffect(() => {
+    // Cargar tutores al montar el componente
+    const fetchTutores = async () => {
+      const { data, error } = await supabase.from('tutor').select('id, nombre');
+      if (!error && data) setTutores(data);
+    };
+    fetchTutores();
+  }, []);
+
   // Depuración: mostrar libros en consola
   console.log('[ADMIN] Libros cargados:', libros);
 
@@ -106,7 +126,18 @@ const AdminBooksPage = () => {
     const fecha_publicacion = formData.get('fecha_publicacion')?.toString() || '';
     const sinopsis = formData.get('sinopsis')?.toString().trim() || '';
     const url_portada = formData.get('url_portada')?.toString().trim() || '';
-    const tipo = formData.get('tipo')?.toString().trim() || '';
+    let tipo = '';
+    if (tipoTesis) {
+      tipo = 'Tesis';
+    } else if (tipoProyecto) {
+      tipo = 'Proyecto de Investigacion';
+    } else if (tipoFisico && tipoVirtual) {
+      tipo = 'Fisico y Virtual';
+    } else if (tipoFisico) {
+      tipo = 'Fisico';
+    } else if (tipoVirtual) {
+      tipo = 'Virtual';
+    }
     const especialidad = formData.get('especialidad')?.toString().trim() || '';
     const pdfFile = formData.get('url_pdf') as File | null;
     let url_pdf = '';
@@ -118,15 +149,45 @@ const AdminBooksPage = () => {
       setAddLoading(false);
       return;
     }
-    const { error } = await supabase
+    // Guardar libro en 'Libros'
+    const { error: errorLibro, data: dataLibro } = await supabase
       .from('Libros')
-      .insert([{ titulo, sinopsis, fecha_publicacion, url_portada: url_portada || null, tipo, especialidad, url_pdf: url_pdf || null }]);
-    if (error) {
-      setAddError('Error al agregar libro');
-    } else {
-      setShowForm(false);
-      fetchLibros();
+      .insert([{ titulo, sinopsis, fecha_publicacion, url_portada: url_portada || null, tipo, especialidad }])
+      .select();
+    if (errorLibro) {
+      setAddError('Error al agregar libro: ' + (errorLibro.message || JSON.stringify(errorLibro)));
+      console.error('[ADMIN][ADD] Error al agregar libro:', errorLibro);
+      setAddLoading(false);
+      return;
     }
+    // Si hay PDF, guardar en 'libros_virtuales'
+    if (url_pdf && dataLibro && dataLibro.length > 0) {
+      const libro_id = dataLibro[0].id_libro;
+      const { error: errorVirtual } = await supabase
+        .from('libros_virtuales')
+        .insert([{ libro_id, direccion_del_libro: url_pdf }]);
+      if (errorVirtual) {
+        setAddError('Libro guardado, pero error al guardar PDF en libros_virtuales: ' + (errorVirtual.message || JSON.stringify(errorVirtual)));
+        console.error('[ADMIN][ADD] Error al guardar PDF en libros_virtuales:', errorVirtual);
+        setAddLoading(false);
+        return;
+      }
+    }
+    // Después de insertar en 'Libros':
+    if (tipoFisico && cantidadFisico && dataLibro && dataLibro.length > 0) {
+      const libro_id = dataLibro[0].id_libro;
+      await supabase.from('libros_fisicos').insert([{ libro_id, cantidad: parseInt(cantidadFisico, 10) }]);
+    }
+    if (tipoTesis && periodoTesis && tutorTesis && especialidad && dataLibro && dataLibro.length > 0) {
+      const libro_id = dataLibro[0].id_libro;
+      await supabase.from('tesis').insert([{ libro_id, periodo_academico: periodoTesis, tutor_id: Number(tutorTesis), escuela: especialidad }]);
+    }
+    if (tipoProyecto && periodoTesis && tutorTesis && especialidad && dataLibro && dataLibro.length > 0) {
+      const libro_id = dataLibro[0].id_libro;
+      await supabase.from('proyecto_investigacion').insert([{ libro_id, periodo_academico: periodoTesis, tutor_id: Number(tutorTesis), escuela: especialidad }]);
+    }
+    setShowForm(false);
+    fetchLibros();
     setAddLoading(false);
   };
 
@@ -232,8 +293,86 @@ const AdminBooksPage = () => {
               <label className="block text-sm font-medium text-gray-700">Archivo PDF (opcional):</label>
               <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
             </div>
-            <input type="text" name="tipo" required placeholder="Tipo (Físico, Virtual, Tesis, etc.)" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
-            <input type="text" name="especialidad" required placeholder="Especialidad" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
+            {/* Checkboxes para tipo de libro */}
+            <div className="flex flex-col gap-2">
+              <label className="font-medium">Tipo de libro:</label>
+              <div className="flex gap-4 flex-wrap">
+                <label className="flex items-center gap-1">
+                  <input type="checkbox" checked={tipoFisico} onChange={e => setTipoFisico(e.target.checked)} /> Físico
+                </label>
+                <label className="flex items-center gap-1">
+                  <input type="checkbox" checked={tipoVirtual} onChange={e => setTipoVirtual(e.target.checked)} /> Virtual
+                </label>
+                <label className="flex items-center gap-1">
+                  <input type="checkbox" checked={tipoTesis} onChange={e => {
+                    setTipoTesis(e.target.checked);
+                    if (e.target.checked) setTipoProyecto(false);
+                  }} /> Tesis
+                </label>
+                <label className="flex items-center gap-1">
+                  <input type="checkbox" checked={tipoProyecto} onChange={e => {
+                    setTipoProyecto(e.target.checked);
+                    if (e.target.checked) setTipoTesis(false);
+                  }} /> Proyecto de Investigación
+                </label>
+              </div>
+            </div>
+            {/* Campo condicional para cantidad si es Físico */}
+            {tipoFisico && (
+              <div className="flex flex-col gap-1">
+                <label className="font-medium">Cantidad de libros físicos:</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={cantidadFisico}
+                  onChange={e => setCantidadFisico(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                  placeholder="Cantidad de ejemplares físicos"
+                />
+              </div>
+            )}
+            {/* Campos condicionales para Tesis o Proyecto de Investigación */}
+            {(tipoTesis || tipoProyecto) && (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="font-medium">Período académico:</label>
+                  <input
+                    type="text"
+                    required
+                    value={periodoTesis}
+                    onChange={e => setPeriodoTesis(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                    placeholder="Ej: 2023-2024"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-medium">Tutor:</label>
+                  <select
+                    required
+                    value={tutorTesis}
+                    onChange={e => setTutorTesis(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white"
+                  >
+                    <option value="">Selecciona un tutor</option>
+                    {tutores.map(t => (
+                      <option key={t.id} value={t.id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+            {/* Reemplazar input de especialidad por un select */}
+            <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white">
+              <option value="">Selecciona una especialidad</option>
+              <option value="Arquitectura">Arquitectura</option>
+              <option value="Ingenieria Civil">Ingenieria Civil</option>
+              <option value="Ingenieria en Mantenimiento Mecanico">Ingenieria en Mantenimiento Mecanico</option>
+              <option value="Ingenieria Electronica">Ingenieria Electronica</option>
+              <option value="Ingenieria Industrial">Ingenieria Industrial</option>
+              <option value="Ingenieria Electrica">Ingenieria Electrica</option>
+              <option value="Ingenieria en Sistemas">Ingenieria en Sistemas</option>
+            </select>
             {addError && <p className="text-red-500 text-sm">{addError}</p>}
             <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 mt-2 hover:bg-cyan-700 transition">Guardar Libro</button>
           </form>
