@@ -290,14 +290,14 @@ const AdminBooksPage = () => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
-      <h1 className="text-4xl font-bold mb-8 text-center">Gestión de Libros</h1>
-      <div className="bg-white rounded shadow p-6 mb-12">
-        <h2 className="text-2xl font-bold mb-4">Libros</h2>
-        <p className="text-gray-600 mb-4">Aquí podrás ver, agregar, editar y eliminar libros.</p>
-        <div className="flex gap-2 mb-4 items-center">
+    <div className="min-h-screen p-2 sm:p-4 md:p-8 bg-gray-50">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Gestión de Libros</h1>
+      <div className="bg-white rounded shadow p-4 sm:p-6 mb-8 md:mb-12">
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Libros</h2>
+        <p className="text-gray-600 mb-3 sm:mb-4">Aquí podrás ver, agregar, editar y eliminar libros.</p>
+        <div className="flex flex-col sm:flex-row gap-2 mb-4 items-center">
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto"
             onClick={() => setShowForm((v) => !v)}
           >
             {showForm ? 'Cancelar' : 'Agregar Libro'}
@@ -305,13 +305,17 @@ const AdminBooksPage = () => {
         </div>
         {showForm && (
           <form onSubmit={handleAddLibro} className="mb-6 flex flex-col gap-3">
-            <input type="text" name="titulo" required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
-            <input type="text" name="autor" required placeholder="Autor" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
-            <input type="date" name="fecha_publicacion" required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white" />
-            <textarea name="sinopsis" required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white resize-none min-h-[80px]" />
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+              <input type="text" name="titulo" required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
+              <input type="text" name="autor" required placeholder="Autor" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+              <input type="date" name="fecha_publicacion" required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
+              <textarea name="sinopsis" required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white resize-none min-h-[80px] flex-1" />
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 items-center">
               <input type="url" name="url_portada" placeholder="URL de la portada (opcional)" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" id="input-url-portada" />
-              <label htmlFor="file-portada" className="cursor-pointer bg-cyan-600 text-white rounded-lg px-3 py-2 flex items-center justify-center hover:bg-cyan-700 transition" title="Subir imagen">
+              <label htmlFor="file-portada" className="cursor-pointer bg-cyan-600 text-white rounded-lg px-3 py-2 flex items-center justify-center hover:bg-cyan-700 transition mt-2 sm:mt-0">
                 <span className="text-xl font-bold">+</span>
                 <input type="file" id="file-portada" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
                   const file = e.target.files?.[0];
@@ -323,7 +327,7 @@ const AdminBooksPage = () => {
                 }} />
               </label>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 items-center">
               <label className="block text-sm font-medium text-gray-700">Archivo PDF (opcional):</label>
               <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white flex-1" />
             </div>
@@ -454,7 +458,7 @@ const AdminBooksPage = () => {
               </div>
             )}
             {/* Reemplazar input de especialidad por un select */}
-            <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white">
+            <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white w-full" >
               <option value="">Selecciona una especialidad</option>
               <option value="Arquitectura">Arquitectura</option>
               <option value="Ingenieria Civil">Ingenieria Civil</option>
@@ -465,23 +469,23 @@ const AdminBooksPage = () => {
               <option value="Ingenieria en Sistemas">Ingenieria en Sistemas</option>
             </select>
             {addError && <p className="text-red-500 text-sm">{addError}</p>}
-            <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 mt-2 hover:bg-cyan-700 transition">Guardar Libro</button>
+            <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 mt-2 hover:bg-cyan-700 transition w-full sm:w-auto">Guardar Libro</button>
           </form>
         )}
         {/* Cuadros de libros */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
           {libros.map((libro) => (
             <div
               key={libro.id_libro}
-              className="bg-gray-100 rounded-lg shadow p-4 flex flex-col items-center min-h-[180px] max-h-[220px] w-[200px] max-w-[220px] justify-center cursor-pointer transition-all hover:shadow-lg hover:bg-cyan-50"
-              style={{ minHeight: 180, maxHeight: 220, width: 200, maxWidth: 220 }}
+              className="bg-gray-100 rounded-lg shadow p-4 flex flex-col items-center min-h-[180px] max-h-[220px] w-full xs:w-[180px] sm:w-[200px] max-w-[220px] justify-center cursor-pointer transition-all hover:shadow-lg hover:bg-cyan-50"
+              style={{ minHeight: 180, maxHeight: 220, maxWidth: 220 }}
               onClick={() => setSelectedLibroId(libro.id_libro)}
             >
               {libro.url_portada && (
                 <img
                   src={libro.url_portada}
                   alt={libro.titulo}
-                  className="w-24 h-32 object-cover rounded mb-2 self-center"
+                  className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded mb-2 self-center"
                   style={{ maxWidth: 96, maxHeight: 128 }}
                 />
               )}
@@ -489,7 +493,7 @@ const AdminBooksPage = () => {
                 {libro.titulo}
               </strong>
               {selectedLibroId === libro.id_libro && (
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap justify-center">
                   <button
                     className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
                     onClick={e => {
@@ -515,19 +519,19 @@ const AdminBooksPage = () => {
         </div>
         {/* Modal de confirmación de eliminación */}
         {confirmDeleteId !== null && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-xs w-full text-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-2">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-xs w-full text-center">
               <p className="mb-4">¿Estás seguro de que deseas eliminar este libro?</p>
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center gap-4 flex-wrap">
                 <button
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
                   onClick={() => setConfirmDeleteId(null)}
                   disabled={deleteLoading !== null}
                 >
                   Cancelar
                 </button>
                 <button
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 w-full sm:w-auto"
                   onClick={() => handleDeleteLibro(confirmDeleteId)}
                   disabled={deleteLoading !== null}
                 >
@@ -539,20 +543,20 @@ const AdminBooksPage = () => {
         )}
         {/* Modal de edición */}
         {editLibro && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full text-center">
-              <h3 className="text-xl font-bold mb-4">Editar libro</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-2">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-md w-full text-center">
+              <h3 className="text-lg sm:text-xl font-bold mb-4">Editar libro</h3>
               <form onSubmit={handleEditLibro} className="flex flex-col gap-3 text-left" encType="multipart/form-data">
                 <label className="font-medium">Título:</label>
-                <input type="text" name="titulo" defaultValue={editLibro.titulo} required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <input type="text" name="titulo" defaultValue={editLibro.titulo} required placeholder="Título" className="border border-gray-300 rounded-lg px-4 py-2 w-full" />
                 <label className="font-medium">Sinopsis:</label>
-                <textarea name="sinopsis" defaultValue={editLibro.sinopsis} required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 resize-none min-h-[80px]" />
+                <textarea name="sinopsis" defaultValue={editLibro.sinopsis} required placeholder="Sinopsis" className="border border-gray-300 rounded-lg px-4 py-2 resize-none min-h-[80px] w-full" />
                 <label className="font-medium">URL de la portada (opcional):</label>
-                <input type="url" name="url_portada" defaultValue={editLibro.url_portada || ''} placeholder="URL de la portada (opcional)" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <input type="url" name="url_portada" defaultValue={editLibro.url_portada || ''} placeholder="URL de la portada (opcional)" className="border border-gray-300 rounded-lg px-4 py-2 w-full" />
                 <label className="font-medium">Fecha de publicación:</label>
-                <input type="date" name="fecha_publicacion" defaultValue={editLibro.fecha_publicacion ? editLibro.fecha_publicacion.substring(0, 10) : ''} required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2" />
+                <input type="date" name="fecha_publicacion" defaultValue={editLibro.fecha_publicacion ? editLibro.fecha_publicacion.substring(0, 10) : ''} required placeholder="Fecha de publicación" className="border border-gray-300 rounded-lg px-4 py-2 w-full" />
                 <label className="font-medium">Archivo PDF (opcional):</label>
-                <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white w-full" />
+                <input type="file" name="url_pdf" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" className="border border-gray-300 rounded-lg px-4 py-2 w-full" />
                 <div className="flex flex-col gap-2">
                   <label className="font-medium">Tipo de libro:</label>
                   <div className="flex gap-4 flex-wrap">
@@ -675,7 +679,7 @@ const AdminBooksPage = () => {
                 )}
                 {/* Reemplazar input de especialidad por un select */}
                 <label className="font-medium">Especialidad:</label>
-                <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white">
+                <select name="especialidad" required className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition bg-white w-full">
                   <option value="">Selecciona una especialidad</option>
                   <option value="Arquitectura">Arquitectura</option>
                   <option value="Ingenieria Civil">Ingenieria Civil</option>
@@ -686,9 +690,9 @@ const AdminBooksPage = () => {
                   <option value="Ingenieria en Sistemas">Ingenieria en Sistemas</option>
                 </select>
                 {editError && <p className="text-red-500 text-sm">{editError}</p>}
-                <div className="flex gap-2 justify-end mt-2">
-                  <button type="button" onClick={() => setEditLibro(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-                  <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 hover:bg-cyan-700 transition" disabled={editLoading}>{editLoading ? 'Guardando...' : 'Guardar cambios'}</button>
+                <div className="flex gap-2 justify-end mt-2 flex-wrap">
+                  <button type="button" onClick={() => setEditLibro(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto">Cancelar</button>
+                  <button type="submit" className="bg-cyan-600 text-white rounded-lg px-4 py-2 hover:bg-cyan-700 transition w-full sm:w-auto" disabled={editLoading}>{editLoading ? 'Guardando...' : 'Guardar cambios'}</button>
                 </div>
               </form>
             </div>

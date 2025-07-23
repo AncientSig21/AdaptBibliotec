@@ -205,3 +205,32 @@ Cambios realizados hasta el momento:
 // [2024-06-09] CardBook.tsx: Ahora las opciones de 'Visualizar' (si hay PDF) y 'Reservar' (si es físico) están debajo de los datos del libro. Se eliminó el botón de 'ver detalles'. Al presionar 'Visualizar', el padre debe mostrar el PDF en un modal amplio. 
 
 // [2024-06-09] bookService.ts: Ahora fileUrl siempre será la URL pública completa del PDF en Supabase Storage, construyéndola si solo se tiene la ruta interna. Esto asegura que los PDFs se puedan visualizar correctamente en el visor. 
+
+// Cambios realizados el [fecha actualizable por el usuario]:
+// Se hizo el componente AdminDashboard (AdminLayout) completamente responsive:
+// - El menú lateral ahora se oculta en móviles y aparece como menú deslizable.
+// - Se agregó un botón de menú hamburguesa (☰) para abrir el menú en móviles.
+// - Se añadió un fondo oscuro al abrir el menú en móviles para mejorar la experiencia.
+// - El contenido principal ahora tiene padding adaptable según el tamaño de pantalla.
+// - Se mantiene la funcionalidad de colapsar el menú en escritorio.
+// - Todas las clases usadas son de TailwindCSS para responsividad.
+//
+// Archivo modificado: src/pages/AdminDashboard.tsx 
+
+// [2024-06-09] Se hizo responsive el componente AdminStatsPage:
+// - Cuadros de estadísticas y gráfica ahora se adaptan a móviles y tablets.
+// - Se ajustaron paddings, grids y tamaños de texto con TailwindCSS.
+// - La gráfica es desplazable horizontalmente en pantallas pequeñas.
+// - Archivo modificado: src/pages/AdminStatsPage.tsx 
+
+// [2024-06-09] Se hizo responsive el componente AdminBooksPage:
+// - Formularios, grillas de libros y modales ahora se adaptan a móviles y tablets.
+// - Se ajustaron paddings, grids, tamaños de texto y botones con TailwindCSS.
+// - Los formularios y modales usan flex-col y w-full en móviles para mejor usabilidad.
+// - Archivo modificado: src/pages/AdminBooksPage.tsx 
+
+// [2024-06-09] Se hizo responsive el componente AdminReportsPage:
+// - Las tablas ahora tienen scroll horizontal en móviles y se adaptan a pantallas pequeñas.
+// - Se ajustaron paddings, tamaños de texto y espaciados con TailwindCSS.
+// - Todas las secciones usan clases responsive para mejor visualización en tablets y móviles.
+// - Archivo modificado: src/pages/AdminReportsPage.tsx 
