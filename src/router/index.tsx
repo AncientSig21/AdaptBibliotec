@@ -11,7 +11,7 @@ import AdminStatsPage from '../pages/AdminStatsPage';
 import AdminBooksPage from '../pages/AdminBooksPage';
 import AdminReportsPage from '../pages/AdminReportsPage';
 
-const onlyTesis = allBooks.filter(book => book.type === 'Tesis') as TesisBook[];
+// const onlyTesis = allBooks.filter(book => book.type === 'Tesis'); // No se usa
 const onlyBooks = allBooks.filter(book => book.type === 'Físico' || book.type === 'Virtual');
 
 export const router = createBrowserRouter([

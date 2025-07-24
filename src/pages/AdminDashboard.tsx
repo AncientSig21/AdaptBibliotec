@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { FaChartBar, FaBook, FaFileAlt, FaAngleDoubleLeft, FaAngleDoubleRight, FaBars } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
 
-const adminLinks = [
-  { to: '/admin', label: 'Estadísticas', icon: <FaChartBar />, end: true },
-  { to: '/admin/libros', label: 'Libros', icon: <FaBook /> },
-  { to: '/admin/reportes', label: 'Reportes', icon: <FaFileAlt /> },
-];
+// Modo demo: simular notificaciones
 
-const AdminLayout = () => {
+const DEMO_MODE = true;
+
+export default function AdminLayout() {
+  // Estado global para notificaciones en modo demo
+  const [morososCount, setMorososCount] = useState(1);
+  const [pendientesCount, setPendientesCount] = useState(2);
+
+  // Funciones para actualizar los contadores desde hijos (por ejemplo, desde AdminReportsPage)
+  const handleMorosoDesbloqueado = () => setMorososCount(c => Math.max(0, c - 1));
+  const handlePedidoRespondido = () => setPendientesCount(c => Math.max(0, c - 1));
+
+  const adminLinks = [
+    { to: '/admin', label: 'Estadísticas', icon: <FaChartBar />, end: true },
+    { to: '/admin/libros', label: 'Libros', icon: <FaBook /> },
+    { to: '/admin/reportes', label: 'Reportes', icon: <FaFileAlt />, notis: DEMO_MODE ? { morosos: morososCount, pendientes: pendientesCount } : undefined },
+  ];
+
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -66,6 +78,21 @@ const AdminLayout = () => {
             >
               <span className="text-xl">{link.icon}</span>
               {!collapsed && <span>{link.label}</span>}
+              {/* Notificaciones para la pestaña de reportes */}
+              {link.to === '/admin/reportes' && link.notis && !collapsed && (
+                <span className="flex gap-1 ml-2">
+                  {link.notis.morosos > 0 && (
+                    <span title="Usuarios morosos" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 border-2 border-white text-white text-xs font-bold">
+                      {link.notis.morosos}
+                    </span>
+                  )}
+                  {link.notis.pendientes > 0 && (
+                    <span title="Pedidos por responder" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 border-2 border-white text-gray-800 text-xs font-bold">
+                      {link.notis.pendientes}
+                    </span>
+                  )}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -79,10 +106,9 @@ const AdminLayout = () => {
       )}
       {/* Contenido */}
       <main className="flex-1 p-2 sm:p-4 md:p-8 transition-all duration-300">
-        <Outlet />
+        {/* Pasar funciones de actualización como contexto o props en modo demo */}
+        <Outlet context={DEMO_MODE ? { handleMorosoDesbloqueado, handlePedidoRespondido } : {}} />
       </main>
     </div>
   );
-};
-
-export default AdminLayout; 
+} 

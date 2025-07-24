@@ -52,6 +52,7 @@ export const BookGrid = ({ title, books, noBooksMessage }: Props) => {
 							fragment={book.fragment}
 							fileUrl={book.fileUrl}
 							onViewDetails={() => handleViewDetails(book)}
+							cantidadDisponible={book.cantidadDisponible}
 						/>
 					))}
 				</div>

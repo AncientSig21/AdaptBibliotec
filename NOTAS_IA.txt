@@ -234,3 +234,80 @@ Cambios realizados hasta el momento:
 // - Se ajustaron paddings, tamaños de texto y espaciados con TailwindCSS.
 // - Todas las secciones usan clases responsive para mejor visualización en tablets y móviles.
 // - Archivo modificado: src/pages/AdminReportsPage.tsx 
+
+# -----------------------------
+# SQL SUGERIDOS PARA PRÉSTAMO Y MOROSIDAD
+# Copia y pega estos comandos en tu gestor de base de datos
+# -----------------------------
+
+# Tabla de libros físicos
+--
+CREATE TABLE libros (
+    id SERIAL PRIMARY KEY,
+    titulo VARCHAR(255),
+    autor VARCHAR(255),
+    cantidad_disponible INT NOT NULL DEFAULT 0
+    -- otros campos...
+);
+
+# Tabla de usuarios
+--
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255),
+    email VARCHAR(255) UNIQUE,
+    estado VARCHAR(20) DEFAULT 'Activo' -- Activo, Moroso, etc.
+    -- otros campos...
+);
+
+# Tabla de órdenes de préstamo
+--
+CREATE TABLE ordenes (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT REFERENCES usuarios(id),
+    libro_id INT REFERENCES libros(id),
+    estado VARCHAR(20), -- Pendiente de buscar, Prestado, Completado, Cancelado, Moroso
+    fecha_reserva TIMESTAMP,
+    fecha_entrega TIMESTAMP,
+    fecha_devolucion TIMESTAMP
+);
+
+# Trigger para actualizar stock al crear/cancelar/completar orden
+--
+CREATE OR REPLACE FUNCTION actualizar_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT' AND NEW.estado = 'Pendiente de buscar') THEN
+        UPDATE libros SET cantidad_disponible = cantidad_disponible - 1 WHERE id = NEW.libro_id;
+    ELSIF (TG_OP = 'UPDATE' AND NEW.estado = 'Cancelado' AND OLD.estado = 'Pendiente de buscar') THEN
+        UPDATE libros SET cantidad_disponible = cantidad_disponible + 1 WHERE id = NEW.libro_id;
+    ELSIF (TG_OP = 'UPDATE' AND NEW.estado = 'Completado' AND OLD.estado = 'Prestado') THEN
+        UPDATE libros SET cantidad_disponible = cantidad_disponible + 1 WHERE id = NEW.libro_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_actualizar_stock
+AFTER INSERT OR UPDATE ON ordenes
+FOR EACH ROW EXECUTE FUNCTION actualizar_stock();
+
+# Trigger para marcar usuario como moroso
+--
+CREATE OR REPLACE FUNCTION marcar_usuario_moroso()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (NEW.estado = 'Moroso' AND OLD.estado <> 'Moroso') THEN
+        UPDATE usuarios SET estado = 'Moroso' WHERE id = NEW.usuario_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_marcar_usuario_moroso
+AFTER UPDATE ON ordenes
+FOR EACH ROW EXECUTE FUNCTION marcar_usuario_moroso();
+
+# -----------------------------
+# FIN DE LOS SQL SUGERIDOS
+# ----------------------------- 

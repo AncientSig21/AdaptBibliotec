@@ -1,7 +1,7 @@
 import { JSONContent } from '@tiptap/react';
 
 export interface PreparedBook {
-	id: string;
+	id: number;
 	title: string;
 	author: string;
 	authors: string; // <-- Agregado para múltiples autores
@@ -16,6 +16,7 @@ export interface PreparedBook {
 	speciality: string;
 	fragment?: string; // Fragmento de la primera página
 	fileUrl?: string; // URL del archivo para descargar
+	cantidadDisponible?: number; // Cantidad de ejemplares físicos disponibles
 }
 
 export interface TesisBook extends PreparedBook {

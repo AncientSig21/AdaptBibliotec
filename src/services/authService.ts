@@ -19,6 +19,7 @@ export interface User {
   correo: string;
   escuela: string | null;
   rol?: string;
+  estado?: string | null; // Activo, Moroso, etc.
 }
 
 const createSupabaseClient = () => {
@@ -70,15 +71,11 @@ export const authService = {
       const { data, error } = await supabase
         .from('usuarios')
         .insert([userData])
-        .select('id, nombre, correo, escuela, rol')
+        .select('id, nombre, correo, escuela, rol, estado')
         .single();
 
-      // Si data es un error de columna, retorna null
-      if (data && typeof data === 'object' && 'message' in data && String(data.message).includes("column 'rol' does not exist")) {
-        return { data: null, error: data };
-      }
 
-      return { data, error };
+      return { data: data as User | null, error };
     } catch (error) {
       return { data: null, error };
     }
@@ -93,17 +90,12 @@ export const authService = {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, correo, escuela, rol')
+        .select('id, nombre, correo, escuela, rol, estado')
         .eq('correo', loginData.correo)
         .eq('contraseña', loginData.contraseña)
         .single();
 
-      // Si data es un error de columna, retorna null
-      if (data && typeof data === 'object' && 'message' in data && String(data.message).includes("column 'rol' does not exist")) {
-        return { data: null, error: data };
-      }
-
-      return { data, error };
+      return { data: data as User | null, error };
     } catch (error) {
       return { data: null, error };
     }

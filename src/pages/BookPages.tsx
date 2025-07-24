@@ -8,9 +8,10 @@ import { ContainerFilter } from '../components/products/ContainerFilter';
 import { useAuth } from '../hooks/useAuth';
 import { fetchBooks } from '../services/bookService';
 import { PDFViewer } from '../components/products/PDFViewer';
+import { registerBookReservation } from '../services/bookService';
 
 export const BookPages = () => {
-  const { isAuthenticated, isConfigured } = useAuth();
+  const { isAuthenticated, isConfigured, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,6 +24,7 @@ export const BookPages = () => {
   // Controlar si la selección de especialidad fue hecha por el usuario
   const [userChangedSpeciality, setUserChangedSpeciality] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [reservationMessage, setReservationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -164,6 +166,25 @@ export const BookPages = () => {
     }
   };
 
+  // Handler para reservar libro físico
+  const handleReserve = async (book: PreparedBook) => {
+    if (!isAuthenticated || !user) {
+      setReservationMessage('Debes iniciar sesión para reservar un libro.');
+      return;
+    }
+    if (user.estado === 'Moroso') {
+      setReservationMessage('Usted se encuentra bloqueado por morosidad. Por favor, entregue el libro pendiente lo antes posible para restablecer el acceso.');
+      return;
+    }
+    try {
+      await registerBookReservation({ libro_id: Number(book.id), usuario_id: user.id });
+      setReservationMessage('¡Reserva realizada con éxito!');
+    } catch (err) {
+      setReservationMessage('Error al realizar la reserva.');
+    }
+    setTimeout(() => setReservationMessage(null), 2500);
+  };
+
   return (
     <>
       <h1 className='text-5xl font-semibold text-center mb-12'>
@@ -190,6 +211,13 @@ export const BookPages = () => {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Mensaje de confirmación de reserva */}
+      {reservationMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded shadow-lg z-50 animate-fade-in">
+          {reservationMessage}
         </div>
       )}
 
@@ -231,6 +259,7 @@ export const BookPages = () => {
                         setIsModalOpen(true);
                         setShowPdf(true); // Mostrar PDF directamente
                       }}
+                      onReserve={() => handleReserve(book)}
                     />
                   </motion.div>
                 ))}

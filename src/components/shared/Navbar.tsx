@@ -132,6 +132,13 @@ export const Navbar = () => {
 		navigate('/login');
 	};
 
+	// Función para scroll animado al navegar
+	const handleNavLinkClick = (to: string) => {
+		navigate(to);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+		setShowMenu(false);
+	};
+
 	// Si está cargando, mostrar navbar básico
 	if (loading) {
 		return (
@@ -181,15 +188,13 @@ export const Navbar = () => {
 
 			<nav className='space-x-5 hidden md:flex'>
 				{navbarLinks.map(link => (
-					<NavLink
+					<button
 						key={link.id}
-						to={link.href}
-						className={({ isActive }) =>
-							`transition-all duration-300 font-medium hover:text-cyan-600 hover:underline ${isActive ? 'text-cyan-600 underline' : ''}`
-						}
+						onClick={() => handleNavLinkClick(link.href)}
+						className={`transition-all duration-300 font-medium hover:text-cyan-600 hover:underline bg-transparent border-none outline-none cursor-pointer ${window.location.pathname === link.href ? 'text-cyan-600 underline' : ''}`}
 					>
 						{link.title}
-					</NavLink>
+					</button>
 				))}
 			</nav>
 
@@ -338,9 +343,9 @@ export const Navbar = () => {
 				<div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-end md:hidden">
 					<div className="w-2/3 max-w-xs bg-white h-full shadow-lg p-6 flex flex-col gap-6 animate-slide-in">
 						<button onClick={() => setShowMenu(false)} className="self-end text-2xl text-gray-500 mb-4">&times;</button>
-						<NavLink to="/" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Inicio</NavLink>
-						<NavLink to="/libros" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Libros</NavLink>
-						<NavLink to="/tesis" onClick={() => setShowMenu(false)} className={({ isActive }) => `${isActive ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Proyectos de Investigación</NavLink>
+						<button onClick={() => handleNavLinkClick('/')} className={`${window.location.pathname === '/' ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Inicio</button>
+						<button onClick={() => handleNavLinkClick('/libros')} className={`${window.location.pathname === '/libros' ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Libros</button>
+						<button onClick={() => handleNavLinkClick('/tesis')} className={`${window.location.pathname === '/tesis' ? 'text-cyan-600 underline' : ''} text-lg font-semibold`}>Proyectos de Investigación</button>
 					</div>
 				</div>
 			)}

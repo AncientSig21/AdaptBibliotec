@@ -13,11 +13,26 @@ interface Props {
 	fileUrl?: string;
 	onViewDetails?: () => void; // Visualizar PDF
 	onShowDetails?: () => void; // Ver detalles
+	onReserve?: () => void; // Reservar libro físico
+	cantidadDisponible?: number; // Cantidad de ejemplares físicos disponibles
 }
 
-export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails, onShowDetails }: Props) => {
+export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails, onShowDetails, onReserve, cantidadDisponible }: Props) => {
 	const [showNoPdf, setShowNoPdf] = useState(false);
 	let hideTimeout: NodeJS.Timeout;
+
+	// Función para normalizar el tipo
+	function normalizeType(str: string) {
+		return (str || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '') // Elimina tildes correctamente
+			.replace(/\s+/g, '') // Elimina espacios
+			.trim();
+	}
+
+	const isFisico = normalizeType(type) === 'fisico';
+	const noDisponibles = isFisico && (cantidadDisponible === 0 || cantidadDisponible === undefined);
 
 	return (
 		<div className='flex flex-col gap-6 relative border p-4 rounded-lg shadow-md'>
@@ -35,9 +50,12 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 				<p className='text-[15px] font-semibold'>{title}</p>
 				<p className='text-[13px] text-gray-600'>Especialidad: {speciality}</p>
 				<p className='text-[13px] text-gray-600'>Tipo: {type}</p>
+				{isFisico && (
+					<p className='text-[13px] text-gray-600'>Ejemplares disponibles: {cantidadDisponible ?? 'N/D'}</p>
+				)}
 				{fragment && <p className='text-[12px] text-gray-400 truncate w-full' title={fragment}>Fragmento: {fragment.slice(0, 30)}...</p>}
 
-				<div className='flex gap-2 mt-2 relative'>
+				<div className='flex flex-col gap-2 mt-2 relative w-full items-center'>
 					{/* Botón Visualizar */}
 					<button
 						onClick={() => {
@@ -49,7 +67,7 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 								hideTimeout = setTimeout(() => setShowNoPdf(false), 2000);
 							}
 						}}
-						className={`px-3 py-1 rounded text-xs font-medium transition bg-green-600 text-white hover:bg-green-700`}
+						className={`px-3 py-1 rounded text-xs font-medium transition bg-green-600 text-white hover:bg-green-700 w-full`}
 					>
 						Visualizar
 					</button>
@@ -59,13 +77,20 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 							<span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-3 h-3 bg-gray-800 rotate-45"></span>
 						</div>
 					)}
-					{/* Botón Reservar solo si es físico */}
-					{type === 'Físico' && (
-						<button
-							className='bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-xs font-medium'
-						>
-							Reservar
-						</button>
+					{/* Botón Reservar solo si es físico, debajo del de visualizar */}
+					{isFisico && (
+						<>
+							<button
+								className={`bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-xs font-medium w-full mt-2 ${noDisponibles ? 'opacity-50 cursor-not-allowed' : ''}`}
+								onClick={onReserve}
+								disabled={noDisponibles}
+							>
+								Reservar
+							</button>
+							{noDisponibles && (
+								<p className='text-xs text-red-600 mt-1 text-center'>No hay ejemplares disponibles en este momento.</p>
+							)}
+						</>
 					)}
 				</div>
 			</div>
