@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { navbarLinks } from '../../constants/links';
 import {
 	HiOutlineSearch,
-	HiOutlineShoppingBag,
+	HiOutlineBookOpen,
 } from 'react-icons/hi';
 import { FaBarsStaggered } from 'react-icons/fa6';
 import { FaTachometerAlt } from 'react-icons/fa';
@@ -12,15 +12,16 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCallback } from 'react';
 import { fetchBooks } from '../../services/bookService';
 import { AnimatePresence, motion } from 'framer-motion';
+import { supabase } from '../../supabase/client';
 
 export const Navbar = () => {
 	const { user, isAuthenticated, logout, isConfigured, loading } = useAuth();
 	const navigate = useNavigate();
 	const [showMenu, setShowMenu] = useState(false);
-	const [showDownloads, setShowDownloads] = useState(false);
-	const [downloads, setDownloads] = useState<{ id: string; title: string }[]>([]);
+	const [showPrestamos, setShowPrestamos] = useState(false);
+	const [prestamos, setPrestamos] = useState<any[]>([]);
 	const userMenuRef = useRef<HTMLDivElement>(null);
-	const downloadsMenuRef = useRef<HTMLDivElement>(null);
+	const prestamosMenuRef = useRef<HTMLDivElement>(null);
 	// Estado para el buscador
 	const [showSearch, setShowSearch] = useState(false);
 	const [searchValue, setSearchValue] = useState('');
@@ -29,13 +30,34 @@ export const Navbar = () => {
 	const [suggestions, setSuggestions] = useState<any[]>([]);
 	const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-	// Cargar historial de descargas desde localStorage
+	// Cargar historial de préstamos desde la base de datos
 	useEffect(() => {
 		if (user) {
-			const saved = localStorage.getItem(`downloads_${user.id}`);
-			if (saved) {
-				setDownloads(JSON.parse(saved));
-			}
+			const fetchPrestamos = async () => {
+				try {
+					const { data, error } = await supabase
+						.from('ordenes')
+						.select(`
+							id,
+							estado,
+							fecha_reserva,
+							Libros(titulo)
+						`)
+						.eq('usuario_id', user.id)
+						.order('fecha_reserva', { ascending: false })
+						.limit(5);
+
+					if (error) {
+						console.error('Error al obtener préstamos:', error);
+					} else {
+						setPrestamos(data || []);
+					}
+				} catch (error) {
+					console.error('Error:', error);
+				}
+			};
+
+			fetchPrestamos();
 		}
 	}, [user?.id]);
 
@@ -51,15 +73,15 @@ export const Navbar = () => {
 	}, [showMenu]);
 
 	useEffect(() => {
-		if (!showDownloads) return;
+		if (!showPrestamos) return;
 		function handleClickOutsideDownloads(event: MouseEvent) {
-			if (downloadsMenuRef.current && !downloadsMenuRef.current.contains(event.target as Node)) {
-				setShowDownloads(false);
+			if (prestamosMenuRef.current && !prestamosMenuRef.current.contains(event.target as Node)) {
+				setShowPrestamos(false);
 			}
 		}
 		document.addEventListener('mousedown', handleClickOutsideDownloads);
 		return () => document.removeEventListener('mousedown', handleClickOutsideDownloads);
-	}, [showDownloads]);
+	}, [showPrestamos]);
 
 	// Función para manejar la búsqueda
 	const handleSearch = useCallback(() => {
@@ -110,16 +132,34 @@ export const Navbar = () => {
 
 	const handleToggleMenu = () => {
 		setShowMenu(v => {
-			if (!v) setShowDownloads(false);
+			if (!v) setShowPrestamos(false);
 			return !v;
 		});
 	};
 
-	const handleToggleDownloads = () => {
-		setShowDownloads(v => {
+	const handleTogglePrestamos = () => {
+		setShowPrestamos(v => {
 			if (!v) setShowMenu(false);
 			return !v;
 		});
+	};
+
+	// Función para obtener el color del estado
+	const getEstadoColor = (estado: string) => {
+		switch (estado) {
+			case 'Pendiente de buscar':
+				return 'text-yellow-600';
+			case 'Prestado':
+				return 'text-blue-600';
+			case 'Completado':
+				return 'text-green-600';
+			case 'Cancelado':
+				return 'text-gray-600';
+			case 'Moroso':
+				return 'text-red-600';
+			default:
+				return 'text-gray-600';
+		}
 	};
 
 	const handleLogout = () => {
@@ -285,9 +325,9 @@ export const Navbar = () => {
 								{user.nombre.charAt(0).toUpperCase()}
 							</button>
 							{showMenu && (
-								<div ref={userMenuRef} className='absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
+								<div ref={userMenuRef} className='absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
 									<p className='font-semibold mb-1'>Nombre: <span className='font-normal'>{user.nombre}</span></p>
-									<p className='font-semibold mb-1'>Email: <span className='font-normal'>{user.correo}</span></p>
+									<p className='font-semibold mb-1'>Email: <span className='font-normal break-words'>{user.correo}</span></p>
 									{user.escuela && (
 										<p className='font-semibold mb-3'>Escuela: <span className='font-normal'>{user.escuela}</span></p>
 									)}
@@ -302,21 +342,33 @@ export const Navbar = () => {
 						</div>
 
 						<div className='relative'>
-							<button className='relative' onClick={handleToggleDownloads}>
+							<button className='relative' onClick={handleTogglePrestamos}>
 								<span className='absolute -bottom-2 -right-2 w-5 h-5 grid place-items-center bg-black text-white text-xs rounded-full'>
-									{downloads.length}
+									{prestamos.length}
 								</span>
-								<HiOutlineShoppingBag size={25} />
+								<HiOutlineBookOpen size={25} />
 							</button>
-							{showDownloads && (
-								<div ref={downloadsMenuRef} className='absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
-									<p className='font-semibold mb-2'>Historial de descargas</p>
-									{downloads.length === 0 ? (
-										<p className='text-gray-500 text-sm'>No has descargado ningún libro.</p>
+							{showPrestamos && (
+								<div ref={prestamosMenuRef} className='absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded shadow-lg p-4 z-50'>
+									<p className='font-semibold mb-2'>Historial de préstamos</p>
+									{prestamos.length === 0 ? (
+										<p className='text-gray-500 text-sm'>No has realizado ningún préstamo.</p>
 									) : (
 										<ul className='max-h-48 overflow-y-auto'>
-											{downloads.map(d => (
-												<li key={d.id} className='text-sm py-1 border-b last:border-b-0'>{d.title}</li>
+											{prestamos.map(p => (
+												<li key={p.id} className='text-sm py-2 border-b last:border-b-0'>
+													<div className='font-medium text-gray-800 mb-1'>
+														{p.Libros?.titulo || 'Libro no disponible'}
+													</div>
+													<div className='flex items-center justify-between'>
+														<span className={`text-xs font-medium ${getEstadoColor(p.estado)}`}>
+															{p.estado}
+														</span>
+														<span className='text-gray-500 text-xs'>
+															{new Date(p.fecha_reserva).toLocaleDateString()}
+														</span>
+													</div>
+												</li>
 											))}
 										</ul>
 									)}

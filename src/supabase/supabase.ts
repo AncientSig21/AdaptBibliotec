@@ -56,23 +56,29 @@ export type Database = {
       }
       Libros: {
         Row: {
+          especialidad: string | null
           fecha_publicacion: string
           id_libro: number
           sinopsis: string
+          tipo: string | null
           titulo: string
           url_portada: string | null
         }
         Insert: {
+          especialidad?: string | null
           fecha_publicacion: string
           id_libro?: number
           sinopsis: string
+          tipo?: string | null
           titulo: string
           url_portada?: string | null
         }
         Update: {
+          especialidad?: string | null
           fecha_publicacion?: string
           id_libro?: number
           sinopsis?: string
+          tipo?: string | null
           titulo?: string
           url_portada?: string | null
         }
@@ -154,9 +160,60 @@ export type Database = {
           {
             foreignKeyName: "libros_virtuales_libro_id_fkey"
             columns: ["libro_id"]
+            isOneToOne: true
+            referencedRelation: "Libros"
+            referencedColumns: ["id_libro"]
+          },
+        ]
+      }
+      ordenes: {
+        Row: {
+          estado: string | null
+          fecha_devolucion: string | null
+          fecha_entrega: string | null
+          fecha_limite_busqueda: string | null
+          fecha_limite_devolucion: string | null
+          fecha_reserva: string | null
+          id: number
+          libro_id: number | null
+          usuario_id: number | null
+        }
+        Insert: {
+          estado?: string | null
+          fecha_devolucion?: string | null
+          fecha_entrega?: string | null
+          fecha_limite_busqueda?: string | null
+          fecha_limite_devolucion?: string | null
+          fecha_reserva?: string | null
+          id?: number
+          libro_id?: number | null
+          usuario_id?: number | null
+        }
+        Update: {
+          estado?: string | null
+          fecha_devolucion?: string | null
+          fecha_entrega?: string | null
+          fecha_limite_busqueda?: string | null
+          fecha_limite_devolucion?: string | null
+          fecha_reserva?: string | null
+          id?: number
+          libro_id?: number | null
+          usuario_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordenes_libro_id_fkey"
+            columns: ["libro_id"]
             isOneToOne: false
             referencedRelation: "Libros"
             referencedColumns: ["id_libro"]
+          },
+          {
+            foreignKeyName: "ordenes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -195,51 +252,6 @@ export type Database = {
             columns: ["tutor_id"]
             isOneToOne: false
             referencedRelation: "tutor"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reservas: {
-        Row: {
-          "fecha _pedido": string
-          fecha_fin: string
-          fecha_inicio: string
-          id_reservas: number
-          libro_id: number
-          tipo_de_libro: string
-          usuario_id: number
-        }
-        Insert: {
-          "fecha _pedido": string
-          fecha_fin: string
-          fecha_inicio: string
-          id_reservas?: number
-          libro_id: number
-          tipo_de_libro: string
-          usuario_id: number
-        }
-        Update: {
-          "fecha _pedido"?: string
-          fecha_fin?: string
-          fecha_inicio?: string
-          id_reservas?: number
-          libro_id?: number
-          tipo_de_libro?: string
-          usuario_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reservas_libro_id_fkey"
-            columns: ["libro_id"]
-            isOneToOne: false
-            referencedRelation: "Libros"
-            referencedColumns: ["id_libro"]
-          },
-          {
-            foreignKeyName: "reservas_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -306,6 +318,8 @@ export type Database = {
           estado: string | null
           id: number
           nombre: string
+          rol: string
+          uuid: string | null
         }
         Insert: {
           contraseña: string
@@ -314,6 +328,8 @@ export type Database = {
           estado?: string | null
           id?: number
           nombre: string
+          rol?: string
+          uuid?: string | null
         }
         Update: {
           contraseña?: string
@@ -322,6 +338,8 @@ export type Database = {
           estado?: string | null
           id?: number
           nombre?: string
+          rol?: string
+          uuid?: string | null
         }
         Relationships: []
       }
@@ -333,7 +351,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      rol_usuario: "estudiante" | "docente" | "administrador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -463,6 +481,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      rol_usuario: ["estudiante", "docente", "administrador"],
+    },
   },
 } as const

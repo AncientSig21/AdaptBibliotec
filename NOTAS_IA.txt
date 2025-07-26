@@ -1,7 +1,7 @@
 # =============================================
 # ANOTACIONES DE CAMBIOS REALIZADOS POR IA
 # =============================================
-# Fecha: [Completar con la fecha actual al guardar]
+# Fecha: 07/05/2025
 #
 # 1. Problema detectado: El sistema de autenticación no estaba configurado correctamente.
 #    Motivo: Faltaban las variables de entorno necesarias para Supabase.
@@ -15,7 +15,7 @@
 # =============================================
 
 # =============================================
-# Fecha: [Completar con la fecha actual al guardar]
+# Fecha: 07/05/2025
 #
 # 2. Se modificó el archivo src/pages/AdminDashboard.tsx para que muestre el número real de libros almacenados en la base de datos Supabase.
 #    - Se agregó un useEffect que consulta la cantidad de libros usando supabase.from('Libros').select('*', { count: 'exact', head: true })
@@ -25,7 +25,7 @@
 # =============================================
 
 # =============================================
-# Fecha: [Completar con la fecha actual al guardar]
+# Fecha: 07/05/2025
 #
 # 3. Corrección en src/pages/AdminDashboard.tsx:
 #    - Se volvió a usar 'Libros' (con mayúscula) en la consulta a Supabase.
@@ -33,7 +33,7 @@
 # ============================================= 
 
 # =============================================
-# Fecha: [Completar con la fecha actual al guardar]
+# Fecha: 07/05/2025
 #
 # 4. Se restauró el código en src/pages/AdminDashboard.tsx para consultar y mostrar el número real de libros desde Supabase.
 #    - Se agregaron mensajes de consola para depuración (console.log y console.error).
@@ -235,79 +235,637 @@ Cambios realizados hasta el momento:
 // - Todas las secciones usan clases responsive para mejor visualización en tablets y móviles.
 // - Archivo modificado: src/pages/AdminReportsPage.tsx 
 
-# -----------------------------
-# SQL SUGERIDOS PARA PRÉSTAMO Y MOROSIDAD
-# Copia y pega estos comandos en tu gestor de base de datos
-# -----------------------------
+# =============================================
+# IMPLEMENTACIÓN DEL SISTEMA DE PRÉSTAMOS
+# Fecha: 07/25/2025
+# =============================================
 
-# Tabla de libros físicos
---
-CREATE TABLE libros (
-    id SERIAL PRIMARY KEY,
-    titulo VARCHAR(255),
-    autor VARCHAR(255),
-    cantidad_disponible INT NOT NULL DEFAULT 0
-    -- otros campos...
-);
+# 1. ANÁLISIS INICIAL DEL SISTEMA DE PRÉSTAMOS
+# - Se analizó el archivo NOTAS_IA.txt para entender los cambios previos
+# - Se identificó que el sistema necesitaba implementar un sistema completo de préstamos
+# - Se definieron los requerimientos: reservas, plazos, morosidad, etc.
 
-# Tabla de usuarios
---
-CREATE TABLE usuarios (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    estado VARCHAR(20) DEFAULT 'Activo' -- Activo, Moroso, etc.
-    -- otros campos...
-);
+# 2. IMPLEMENTACIÓN DE LA TABLA ORDENES
+# - Se creó la tabla 'ordenes' en Supabase con los campos necesarios:
+#   * id (SERIAL PRIMARY KEY)
+#   * usuario_id (INTEGER, FK a usuarios)
+#   * libro_id (INTEGER, FK a Libros)
+#   * estado (VARCHAR) - Pendiente de buscar, Prestado, Completado, Cancelado, Moroso
+#   * fecha_reserva (TIMESTAMP)
+#   * fecha_entrega (TIMESTAMP)
+#   * fecha_devolucion (TIMESTAMP)
+#   * fecha_limite_busqueda (TIMESTAMP)
+#   * fecha_limite_devolucion (TIMESTAMP)
 
-# Tabla de órdenes de préstamo
---
-CREATE TABLE ordenes (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT REFERENCES usuarios(id),
-    libro_id INT REFERENCES libros(id),
-    estado VARCHAR(20), -- Pendiente de buscar, Prestado, Completado, Cancelado, Moroso
-    fecha_reserva TIMESTAMP,
-    fecha_entrega TIMESTAMP,
-    fecha_devolucion TIMESTAMP
-);
+# 3. IMPLEMENTACIÓN DE TRIGGERS AUTOMÁTICOS
+# - Se creó el trigger 'trigger_fechas_limite' para establecer fechas automáticamente:
+#   * Al crear orden: fecha_limite_busqueda = fecha_reserva + 24 horas
+#   * Al cambiar a Prestado: fecha_limite_devolucion = fecha_entrega + 48 horas
+# - Se creó el trigger 'trigger_actualizar_stock' para gestionar inventario:
+#   * Al crear orden: reduce stock en 1
+#   * Al cancelar: aumenta stock en 1
+#   * Al completar: aumenta stock en 1
 
-# Trigger para actualizar stock al crear/cancelar/completar orden
---
-CREATE OR REPLACE FUNCTION actualizar_stock()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (TG_OP = 'INSERT' AND NEW.estado = 'Pendiente de buscar') THEN
-        UPDATE libros SET cantidad_disponible = cantidad_disponible - 1 WHERE id = NEW.libro_id;
-    ELSIF (TG_OP = 'UPDATE' AND NEW.estado = 'Cancelado' AND OLD.estado = 'Pendiente de buscar') THEN
-        UPDATE libros SET cantidad_disponible = cantidad_disponible + 1 WHERE id = NEW.libro_id;
-    ELSIF (TG_OP = 'UPDATE' AND NEW.estado = 'Completado' AND OLD.estado = 'Prestado') THEN
-        UPDATE libros SET cantidad_disponible = cantidad_disponible + 1 WHERE id = NEW.libro_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+# 4. IMPLEMENTACIÓN DE VALIDACIONES EN FRONTEND
+# - Se actualizó bookService.ts para validar:
+#   * Usuario no moroso
+#   * Stock disponible
+#   * No tener orden activa para el mismo libro
+# - Se mejoró CardBook.tsx para mostrar:
+#   * Cantidad disponible
+#   * Botón deshabilitado si no hay stock
+#   * Botón "Ya Reservado" si tiene orden activa
 
-CREATE TRIGGER trigger_actualizar_stock
-AFTER INSERT OR UPDATE ON ordenes
-FOR EACH ROW EXECUTE FUNCTION actualizar_stock();
+# 5. IMPLEMENTACIÓN DE MODAL DE CONFIRMACIÓN
+# - Se creó ReservationModal.tsx con:
+#   * Advertencias sobre plazos (24h para buscar, 48h para devolver)
+#   * Información sobre penalizaciones
+#   * Botones de confirmar/cancelar
+# - Se integró en BookPages.tsx para mostrar antes de reservar
 
-# Trigger para marcar usuario como moroso
---
-CREATE OR REPLACE FUNCTION marcar_usuario_moroso()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (NEW.estado = 'Moroso' AND OLD.estado <> 'Moroso') THEN
-        UPDATE usuarios SET estado = 'Moroso' WHERE id = NEW.usuario_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+# 6. IMPLEMENTACIÓN DE ACTUALIZACIÓN EN TIEMPO REAL
+# - Se implementó la Solución 1: Recargar datos después de reserva
+# - Se actualiza la interfaz automáticamente mostrando cantidades reales
+# - Se deshabilitan botones cuando no hay stock disponible
 
-CREATE TRIGGER trigger_marcar_usuario_moroso
-AFTER UPDATE ON ordenes
-FOR EACH ROW EXECUTE FUNCTION marcar_usuario_moroso();
+# 7. IMPLEMENTACIÓN DE VERIFICACIÓN DE VENCIMIENTOS
+# - Se creó la función 'verificar_vencimientos()' que:
+#   * Cancela órdenes vencidas (24h sin buscar)
+#   * Marca como moroso (48h sin devolver)
+#   * Actualiza estado de usuarios morosos
+# - Se integró en AdminReportsPage.tsx para ejecutar automáticamente
 
-# -----------------------------
-# FIN DE LOS SQL SUGERIDOS
-# ----------------------------- 
+# 8. IMPLEMENTACIÓN DE POLÍTICAS RLS
+# - Se creó POLITICA_ORDENES.sql para permitir todas las operaciones en tabla ordenes
+# - Se habilitó RLS y se creó política que permite SELECT, INSERT, UPDATE, DELETE
+
+# 9. MEJORAS EN ADMINREPORTPAGE
+# - Se actualizó para mostrar correo del usuario en lugar de ID
+# - Se mejoró la consulta para incluir JOIN con tabla usuarios
+# - Se agregó información de nombre y correo del usuario
+
+# 10. CORRECCIÓN DE TRIGGERS
+# - Se mejoró el trigger para estado 'Prestado':
+#   * Establece fecha_entrega automáticamente si es NULL
+#   * Calcula fecha_limite_devolucion correctamente
+#   * Agrega logs para debugging
+# - Se corrigió el trigger de stock para manejar todos los casos
+
+# 11. VALIDACIÓN DE ÓRDENES ÚNICAS
+# - Se implementó validación para evitar múltiples reservas del mismo libro
+# - Se verifica en backend y frontend
+# - Se muestra mensaje específico con estado de orden existente
+# - Se deshabilita botón y cambia texto a "Ya Reservado"
+
+# 12. LIMPIEZA DE ARCHIVOS
+# - Se eliminaron archivos SQL temporales:
+#   * TRIGGERS_SQL.sql
+#   * CORREGIR_TRIGGER_STOCK.sql
+#   * VERIFICAR_DATOS.sql
+#   * PRUEBAS_SISTEMA.md
+# - Se mantuvieron solo los archivos necesarios:
+#   * MEJORAR_TRIGGER_PRESTADO.sql
+#   * POLITICA_ORDENES.sql
+
+# =============================================
+# ESTADO FINAL DEL SISTEMA DE PRÉSTAMOS
+# =============================================
+
+# ✅ FUNCIONALIDADES IMPLEMENTADAS:
+# - Reserva de libros físicos con validaciones
+# - Triggers automáticos para fechas y stock
+# - Modal de confirmación con advertencias
+# - Actualización en tiempo real de cantidades
+# - Verificación automática de vencimientos
+# - Validación de órdenes únicas por usuario
+# - Panel de administración con información detallada
+# - Políticas RLS para seguridad
+# - Interfaz responsive y moderna
+
+# ✅ FLUJO COMPLETO FUNCIONANDO:
+# 1. Usuario reserva libro → Modal de confirmación
+# 2. Se crea orden → Stock se reduce automáticamente
+# 3. Admin cambia a "Prestado" → Se establecen fechas límite
+# 4. Usuario devuelve → Admin marca "Completado" → Stock aumenta
+# 5. Si no cumple plazos → Sistema marca como "Moroso"
+
+# ✅ ARCHIVOS PRINCIPALES MODIFICADOS:
+# - src/services/bookService.ts (validaciones y reservas)
+# - src/pages/BookPages.tsx (integración de modal y actualizaciones)
+# - src/components/products/CardBook.tsx (validaciones de stock)
+# - src/components/products/ReservationModal.tsx (modal de confirmación)
+# - src/pages/AdminReportsPage.tsx (panel de administración)
+# - src/supabase/supabase.ts (tipos actualizados)
+
+# ✅ ARCHIVOS SQL CREADOS:
+# - MEJORAR_TRIGGER_PRESTADO.sql (triggers finales)
+# - POLITICA_ORDENES.sql (políticas RLS)
+
+# =============================================
+# FIN DE LA IMPLEMENTACIÓN DEL SISTEMA DE PRÉSTAMOS
+# =============================================
+
+# =============================================
+# IMPLEMENTACIÓN DEL SISTEMA DE BLOQUEO PARA USUARIOS MOROSOS
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. MODIFICACIÓN DE LA FUNCIÓN DE VERIFICACIÓN DE VENCIMIENTOS
+# - Se actualizó la función checkVencimientos() en AdminReportsPage.tsx
+# - Ahora cuando una orden se marca como 'Moroso', automáticamente actualiza el estado del usuario
+# - Se obtienen todos los usuarios con órdenes morosas y se marcan como 'Moroso' en la tabla usuarios
+# - Se filtraron valores null para evitar errores de tipos
+
+# 2. CREACIÓN DEL COMPONENTE DE BLOQUEO
+# - Se creó MorosoBlock.tsx en src/components/shared/
+# - Muestra una pantalla completa de bloqueo para usuarios morosos
+# - Incluye información del usuario, libros pendientes de devolución
+# - Proporciona instrucciones para desbloquear la cuenta
+# - Incluye información de contacto del administrador
+# - Tiene un botón para cerrar sesión
+
+# 3. MODIFICACIÓN DEL HOOK useAuth
+# - Se agregó la función isUserMoroso() para verificar si el usuario está bloqueado
+# - Se agregó refreshUserStatus() para actualizar el estado desde la base de datos
+# - Se importó supabase para poder hacer consultas directas
+# - Se mantuvieron todas las funciones existentes
+
+# 4. MODIFICACIÓN DEL ROOTLAYOUT
+# - Se agregó verificación de usuarios morosos en RootLayout.tsx
+# - Si el usuario está autenticado y es moroso, se muestra el componente de bloqueo
+# - Se agregó loading state mientras se verifica el estado
+# - Se importaron los componentes necesarios
+
+# 5. VALIDACIONES EXISTENTES
+# - El servicio bookService.ts ya tenía validaciones para usuarios morosos
+# - Verifica que usuarios morosos no puedan realizar reservas
+# - Muestra mensajes de error específicos para usuarios bloqueados
+
+# ✅ FUNCIONALIDADES IMPLEMENTADAS:
+# - Actualización automática del estado de usuario cuando una orden se marca como morosa
+# - Bloqueo completo de la interfaz para usuarios morosos
+# - Verificación en tiempo real del estado del usuario
+# - Información detallada sobre libros pendientes de devolución
+# - Instrucciones claras para desbloquear la cuenta
+# - Validaciones en el frontend para prevenir reservas de usuarios morosos
+
+# ✅ FLUJO COMPLETO FUNCIONANDO:
+# 1. Sistema detecta orden vencida → Marca como 'Moroso'
+# 2. Automáticamente actualiza estado del usuario a 'Moroso'
+# 3. Usuario intenta acceder → Se muestra pantalla de bloqueo
+# 4. Usuario no puede realizar ninguna acción hasta desbloquear
+# 5. Administrador desbloquea → Usuario puede volver a usar el sistema
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (función de verificación de vencimientos)
+# - src/components/shared/MorosoBlock.tsx (nuevo componente de bloqueo)
+# - src/hooks/useAuth.ts (funciones de verificación de estado)
+# - src/layouts/RootLayout.tsx (integración del bloqueo)
+
+# =============================================
+# FIN DE LA IMPLEMENTACIÓN DEL SISTEMA DE BLOQUEO PARA USUARIOS MOROSOS
+# =============================================
+
+# =============================================
+# CORRECCIÓN Y MEJORAS DEL SISTEMA DE BLOQUEO
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - La función checkVencimientos() solo se ejecutaba al cargar la página de administración
+# - Los usuarios morosos no se actualizaban automáticamente en la base de datos
+# - Faltaba un trigger en la base de datos para actualización automática
+
+# 2. SOLUCIÓN IMPLEMENTADA
+# - Se creó TRIGGER_USUARIO_MOROSO.sql con un trigger que se ejecuta automáticamente
+# - El trigger actualiza el estado del usuario cuando una orden cambia a 'Moroso'
+# - También desbloquea usuarios cuando ya no tienen órdenes morosas
+
+# 3. MEJORAS EN LA FUNCIÓN DE VERIFICACIÓN
+# - Se mejoró la función checkVencimientos() en AdminReportsPage.tsx
+# - Ahora también verifica y desbloquea usuarios que ya no tienen órdenes morosas
+# - Se agregó función ejecutarVerificacionManual() para verificación manual
+
+# 4. BOTÓN DE VERIFICACIÓN MANUAL
+# - Se agregó un botón "Verificar Vencimientos" en el panel de administración
+# - Permite ejecutar la verificación manualmente cuando sea necesario
+# - Muestra estado de carga y mensajes de confirmación
+
+# 5. FLUJO COMPLETO CORREGIDO
+# 1. Trigger automático: Cuando orden cambia a 'Moroso' → Usuario se marca como 'Moroso'
+# 2. Verificación manual: Botón ejecuta verificación completa de vencimientos
+# 3. Bloqueo automático: Usuario moroso ve pantalla de bloqueo al acceder
+# 4. Desbloqueo automático: Cuando no hay más órdenes morosas → Usuario vuelve a 'Activo'
+
+# ✅ ARCHIVOS CREADOS/MODIFICADOS:
+# - TRIGGER_USUARIO_MOROSO.sql (nuevo trigger de base de datos)
+# - src/pages/AdminReportsPage.tsx (mejoras en verificación y botón manual)
+# - src/components/shared/MorosoBlock.tsx (componente de bloqueo)
+# - src/hooks/useAuth.ts (funciones de verificación)
+# - src/layouts/RootLayout.tsx (integración del bloqueo)
+
+# ✅ INSTRUCCIONES PARA IMPLEMENTAR:
+# 1. Ejecutar TRIGGER_USUARIO_MOROSO.sql en Supabase SQL Editor
+# 2. Probar el trigger creando una orden y cambiándola a 'Moroso'
+# 3. Verificar que el usuario se marca automáticamente como 'Moroso'
+# 4. Probar el bloqueo accediendo con un usuario moroso
+# 5. Usar el botón "Verificar Vencimientos" para verificación manual
+
+# =============================================
+# FIN DE LAS CORRECCIONES DEL SISTEMA DE BLOQUEO
+# =============================================
+
+# =============================================
+# CORRECCIÓN DEL PROBLEMA DE ESTADO NULL EN USUARIOS
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - El campo 'estado' en la tabla usuarios permite valores NULL
+# - Los usuarios existentes tenían estado = NULL en lugar de 'Activo'
+# - Esto causaba que las verificaciones de morosidad no funcionaran correctamente
+
+# 2. SOLUCIÓN IMPLEMENTADA
+# - Se creó CORREGIR_ESTADO_USUARIOS.sql para actualizar usuarios existentes
+# - Se modificó authService.ts para establecer estado = 'Activo' por defecto al registrar
+# - Se agregaron consultas de verificación para debugging
+
+# 3. SCRIPT DE CORRECCIÓN
+# - Actualiza todos los usuarios con estado NULL a 'Activo'
+# - Verifica usuarios con órdenes morosas y los marca como 'Moroso'
+# - Proporciona consultas de verificación y debugging
+# - Incluye resumen final con estadísticas
+
+# 4. MODIFICACIÓN EN REGISTRO
+# - Ahora al registrar un usuario se establece automáticamente estado = 'Activo'
+# - Esto previene el problema en futuros registros
+
+# ✅ ARCHIVOS CREADOS/MODIFICADOS:
+# - CORREGIR_ESTADO_USUARIOS.sql (script de corrección)
+# - src/services/authService.ts (estado por defecto en registro)
+
+# ✅ INSTRUCCIONES PARA IMPLEMENTAR:
+# 1. Ejecutar CORREGIR_ESTADO_USUARIOS.sql en Supabase SQL Editor
+# 2. Verificar que todos los usuarios tengan estado correcto
+# 3. Ejecutar TRIGGER_USUARIO_MOROSO.sql después de la corrección
+# 4. Probar el sistema con usuarios existentes y nuevos
+
+# =============================================
+# FIN DE LA CORRECCIÓN DEL ESTADO NULL
+# =============================================
+
+# =============================================
+# IMPLEMENTACIÓN DE FECHAS DE DEVOLUCIÓN
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROPÓSITO DEL CAMPO fecha_devolucion
+# - El campo fecha_devolucion registra cuándo el usuario devolvió físicamente el libro
+# - Es diferente de fecha_entrega (cuándo se entregó) y fecha_reserva (cuándo se reservó)
+# - Se usa para completar el ciclo de préstamo: Reserva → Entrega → Devolución
+
+# 2. MEJORAS IMPLEMENTADAS
+# - Se modificó updateOrdenEstado() para establecer automáticamente las fechas:
+#   * Al cambiar a 'Prestado': establece fecha_entrega
+#   * Al cambiar a 'Completado': establece fecha_devolucion
+# - Se agregó columna 'Fechas' en la tabla de órdenes
+# - Se muestran fechas de entrega y devolución con íconos
+# - Se muestran advertencias si faltan fechas
+
+# 3. FLUJO COMPLETO DE FECHAS
+# - fecha_reserva: Cuando el usuario reserva el libro
+# - fecha_entrega: Cuando el admin entrega el libro (estado: "Prestado")
+# - fecha_devolucion: Cuando el usuario devuelve el libro (estado: "Completado")
+# - fecha_limite_busqueda: 24h para buscar el libro
+# - fecha_limite_devolucion: 48h para devolver el libro
+
+# 4. VISUALIZACIÓN EN LA TABLA
+# - 📤 Entrega: Fecha cuando se entregó el libro
+# - 📥 Devolución: Fecha cuando se devolvió el libro
+# - ⚠️ Advertencias: Si faltan fechas en estados correspondientes
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (función updateOrdenEstado y tabla mejorada)
+
+# ✅ FUNCIONALIDADES AGREGADAS:
+# - Registro automático de fecha_entrega al cambiar a 'Prestado'
+# - Registro automático de fecha_devolucion al cambiar a 'Completado'
+# - Visualización de fechas en la tabla de órdenes
+# - Advertencias para fechas faltantes
+
+# =============================================
+# FIN DE LA IMPLEMENTACIÓN DE FECHAS DE DEVOLUCIÓN
+# =============================================
+
+# =============================================
+# ELIMINACIÓN DE SECCIÓN DE USUARIOS MOROSOS Y AGREGADO DE FILTROS
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - La sección de "Usuarios bloqueados por morosidad" no tenía sentido
+# - Al hacer clic en "Desbloquear" no cambiaba nada si el usuario tenía órdenes morosas
+# - El trigger automático ya maneja el estado de usuarios morosos
+
+# 2. CAMBIOS REALIZADOS
+# - Se eliminó completamente la sección de usuarios morosos
+# - Se eliminó la tarjeta de contador de morosos del resumen superior
+# - Se eliminó la notificación flotante de morosos
+# - Se eliminaron las funciones fetchMorosos() y desbloquearUsuario()
+# - Se eliminaron los estados relacionados con morosos
+
+# 3. NUEVAS FUNCIONALIDADES AGREGADAS
+# - Se agregaron filtros al historial de órdenes:
+#   * Filtro por estado: Todos los estados disponibles
+#   * Filtro por acción: Requiere atención, Recientes, Vencidas
+#   * Botón para limpiar filtros
+# - Se agregó lógica de filtrado con ordenesFiltradas
+# - Se agregó mensaje cuando no hay resultados con filtros aplicados
+
+# 4. MEJORAS EN LA INTERFAZ
+# - Los filtros están ubicados junto al título de la sección
+# - Diseño responsive para los filtros
+# - Mensaje informativo cuando no hay órdenes con filtros aplicados
+# - Mantiene solo las notificaciones útiles (pendientes)
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (eliminación de sección morosos y agregado de filtros)
+
+# ✅ FUNCIONALIDADES ELIMINADAS:
+# - Sección de usuarios morosos
+# - Contador de morosos en resumen
+# - Notificación flotante de morosos
+# - Funciones fetchMorosos() y desbloquearUsuario()
+
+# ✅ FUNCIONALIDADES AGREGADAS:
+# - Filtros por estado y acción en historial de órdenes
+# - Lógica de filtrado avanzada
+# - Interfaz mejorada para gestión de órdenes
+
+# =============================================
+# FIN DE LA ELIMINACIÓN DE SECCIÓN DE USUARIOS MOROSOS
+# =============================================
+
+# =============================================
+# RESTAURACIÓN DE TARJETA DE MOROSOS CON NUEVA LÓGICA
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. CAMBIO REALIZADO
+# - Se restauró la tarjeta de morosos en el resumen superior
+# - Se cambió la lógica para mostrar "Órdenes Morosas" en lugar de "Usuarios Morosos"
+# - Se agregó el contador morososCount que cuenta órdenes con estado 'Moroso'
+# - Se restauró la notificación flotante de morosos
+
+# 2. NUEVA LÓGICA
+# - morososCount = ordenes.filter(o => o.estado === 'Moroso').length
+# - Muestra el número de órdenes morosas, no usuarios morosos
+# - Es más útil para el administrador ver cuántas órdenes necesitan atención
+
+# 3. BENEFICIOS
+# - El administrador puede ver rápidamente cuántas órdenes están en estado moroso
+# - Es más específico y útil que contar usuarios morosos
+# - Mantiene la funcionalidad de notificaciones flotantes
+# - No interfiere con el trigger automático que maneja usuarios
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (restauración de tarjeta y notificación de morosos)
+
+# ✅ FUNCIONALIDADES RESTAURADAS:
+# - Tarjeta de contador de órdenes morosas
+# - Notificación flotante de órdenes morosas
+# - Contador morososCount con nueva lógica
+
+# =============================================
+# FIN DE LA RESTAURACIÓN DE TARJETA DE MOROSOS
+# =============================================
+
+# =============================================
+# MEJORA DEL FILTRO DE ACCIÓN EN HISTORIAL DE ÓRDENES
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - El filtro "Requiere atención" no tenía significado claro para el usuario
+# - Los filtros "Recientes" y "Vencidas" eran confusos y poco útiles
+# - Se necesitaban filtros más prácticos y comprensibles
+
+# 2. CAMBIOS REALIZADOS
+# - Se eliminaron los filtros: "Requiere atención", "Recientes", "Vencidas"
+# - Se agregaron filtros de tiempo más útiles:
+#   * "Últimas 24 horas": Muestra órdenes creadas en las últimas 24 horas
+#   * "Últimas 48 horas": Muestra órdenes creadas en las últimas 48 horas
+#   * "Últimos 7 días": Muestra órdenes creadas en los últimos 7 días
+
+# 3. LÓGICA IMPLEMENTADA
+# - Se usa dayjs para calcular fechas relativas
+# - Se compara fecha_reserva con la fecha actual menos el tiempo especificado
+# - Los filtros son más intuitivos y útiles para el administrador
+
+# 4. BENEFICIOS
+# - Filtros más claros y útiles para el administrador
+# - Permite ver actividad reciente de manera fácil
+# - Facilita el seguimiento de órdenes por períodos de tiempo específicos
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (cambio de opciones del filtro de acción)
+
+# ✅ FUNCIONALIDADES ELIMINADAS:
+# - Filtro "Requiere atención"
+# - Filtro "Recientes (últimos 7 días)"
+# - Filtro "Vencidas"
+
+# ✅ FUNCIONALIDADES AGREGADAS:
+# - Filtro "Últimas 24 horas"
+# - Filtro "Últimas 48 horas"
+# - Filtro "Últimos 7 días"
+
+# =============================================
+# FIN DE LA MEJORA DEL FILTRO DE ACCIÓN
+# =============================================
+
+# =============================================
+# IMPLEMENTACIÓN DE PAGINACIÓN Y BÚSQUEDA AVANZADA
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - Mostrar todas las órdenes sin límite puede causar problemas de rendimiento
+# - A medida que el sistema crezca, las órdenes se acumularán
+# - Difícil encontrar órdenes específicas sin búsqueda
+# - No hay paginación para manejar grandes volúmenes de datos
+
+# 2. SOLUCIONES IMPLEMENTADAS
+
+# 2.1 LÍMITE POR DEFECTO (30 DÍAS)
+# - Por defecto solo se muestran órdenes de los últimos 30 días
+# - Los filtros de tiempo permiten ver órdenes más antiguas cuando sea necesario
+# - Mejora significativa en rendimiento y usabilidad
+
+# 2.2 PAGINACIÓN
+# - 20 órdenes por página por defecto
+# - Opciones: 10, 20, 50, 100 órdenes por página
+# - Navegación: Anterior/Siguiente
+# - Información: "Mostrando X-Y de Z órdenes"
+# - Reset automático de página al cambiar filtros
+
+# 2.3 BÚSQUEDA AVANZADA
+# - Búsqueda por usuario (correo o nombre)
+# - Búsqueda por libro (título)
+# - Búsqueda por fecha
+# - Campo de búsqueda con placeholder
+# - Selector de tipo de búsqueda
+
+# 3. FUNCIONALIDADES AGREGADAS
+# - Estados para paginación (currentPage, ordersPerPage)
+# - Estados para búsqueda (searchTerm, searchBy)
+# - Lógica de filtrado mejorada con múltiples criterios
+# - Controles de paginación en la interfaz
+# - Controles de búsqueda en la interfaz
+# - Reset automático de página al cambiar filtros
+
+# 4. BENEFICIOS
+# - Rendimiento mejorado significativamente
+# - Mejor experiencia de usuario
+# - Escalabilidad del sistema
+# - Búsqueda rápida de órdenes específicas
+# - Navegación eficiente en grandes volúmenes de datos
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (paginación, búsqueda, límite de 30 días)
+
+# ✅ FUNCIONALIDADES AGREGADAS:
+# - Límite por defecto de 30 días
+# - Paginación completa con controles
+# - Búsqueda por usuario, libro y fecha
+# - Reset automático de página
+# - Información de paginación
+
+# =============================================
+# FIN DE LA IMPLEMENTACIÓN DE PAGINACIÓN Y BÚSQUEDA
+# =============================================
+
+# =============================================
+# MEJORA DEL FILTRO DE BÚSQUEDA POR FECHA
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - El filtro de búsqueda por fecha usaba un campo de texto
+# - Era difícil buscar fechas específicas sin formato exacto
+# - No había validación de formato de fecha
+# - La búsqueda por texto era imprecisa para fechas
+
+# 2. SOLUCIÓN IMPLEMENTADA
+# - Se cambió el campo de texto por un input de tipo "date"
+# - El campo muestra un selector de fecha nativo del navegador
+# - Formato: AAAA-MM-DD (año-mes-día)
+# - Validación automática de formato de fecha
+
+# 3. LÓGICA DE BÚSQUEDA MEJORADA
+# - Se usa dayjs para comparar fechas correctamente
+# - Comparación por día completo (no hora específica)
+# - Búsqueda exacta de fecha, no parcial
+# - Manejo correcto de zonas horarias
+
+# 4. INTERFAZ MEJORADA
+# - Campo de fecha aparece solo cuando se selecciona "Buscar por fecha"
+# - Campo de texto para usuario y libro
+# - Selector de fecha nativo para mejor UX
+# - Formato consistente AAAA-MM-DD
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/pages/AdminReportsPage.tsx (campo de fecha y lógica de búsqueda)
+
+# ✅ FUNCIONALIDADES MEJORADAS:
+# - Campo de fecha tipo "date" con selector nativo
+# - Búsqueda exacta por fecha usando dayjs
+# - Interfaz condicional según tipo de búsqueda
+# - Validación automática de formato de fecha
+
+# =============================================
+# FIN DE LA MEJORA DEL FILTRO DE BÚSQUEDA POR FECHA
+# =============================================
+
+# =============================================
+# CAMBIO DE HISTORIAL DE DESCARGAS A HISTORIAL DE PRÉSTAMOS
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - El navbar tenía un botón de "Historial de descargas" que no era relevante
+# - Los usuarios necesitaban ver sus préstamos actuales y su estado
+# - No había forma fácil de ver el estado de los préstamos desde el navbar
+
+# 2. CAMBIOS REALIZADOS
+# - Se cambió "Historial de descargas" por "Historial de préstamos"
+# - Se conectó con la base de datos para obtener los últimos 5 préstamos del usuario
+# - Se muestra el estado de cada préstamo con colores distintivos
+# - Se muestra la fecha de reserva de cada préstamo
+
+# 3. FUNCIONALIDADES IMPLEMENTADAS
+# - Obtención de últimos 5 préstamos desde la tabla 'ordenes'
+# - Estados con colores: Pendiente (amarillo), Prestado (azul), Completado (verde), etc.
+# - Interfaz mejorada con título del libro, estado y fecha
+# - Contador de préstamos en el botón del navbar
+
+# 4. INTERFAZ MEJORADA
+# - Título del libro en negrita
+# - Estado con color distintivo según el tipo
+# - Fecha de reserva formateada
+# - Diseño más limpio y organizado
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/components/shared/Navbar.tsx (cambio de descargas a préstamos)
+
+# ✅ FUNCIONALIDADES ELIMINADAS:
+# - Historial de descargas desde localStorage
+# - Estados relacionados con downloads
+
+# ✅ FUNCIONALIDADES AGREGADAS:
+# - Historial de préstamos desde base de datos
+# - Estados con colores distintivos
+# - Últimos 5 préstamos del usuario
+# - Información de estado y fecha
+
+# =============================================
+# FIN DEL CAMBIO DE HISTORIAL DE DESCARGAS A PRÉSTAMOS
+# =============================================
+
+# =============================================
+# MEJORA DEL MENÚ DEL USUARIO EN NAVBAR
+# Fecha: 07/25/2025
+# =============================================
+
+# 1. PROBLEMA IDENTIFICADO
+# - El correo del usuario en el menú del navbar era muy largo
+# - Se cortaba y no se veía completo
+# - El cuadro del menú era muy estrecho (w-56)
+
+# 2. SOLUCIÓN IMPLEMENTADA
+# - Se aumentó el ancho del menú de w-56 a w-64
+# - Se agregó la clase break-words al correo para que se ajuste
+# - El correo ahora se puede romper en múltiples líneas si es necesario
+
+# 3. CAMBIOS REALIZADOS
+# - Ancho del menú: w-56 → w-64 (más espacio)
+# - Correo: Agregado break-words para ajuste automático
+# - Mejor legibilidad del correo electrónico
+
+# 4. BENEFICIOS
+# - El correo se ve completo sin cortarse
+# - Mejor experiencia de usuario
+# - Diseño más limpio y legible
+# - Compatible con correos largos
+
+# ✅ ARCHIVOS MODIFICADOS:
+# - src/components/shared/Navbar.tsx (mejora del menú del usuario)
+
+# ✅ FUNCIONALIDADES MEJORADAS:
+# - Menú del usuario más ancho
+# - Correo con break-words para ajuste
+# - Mejor legibilidad de información del usuario
+
+# =============================================
+# FIN DE LA MEJORA DEL MENÚ DEL USUARIO
+# =============================================

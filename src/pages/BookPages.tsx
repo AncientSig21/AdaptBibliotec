@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { CardBook } from '../components/products/CardBook';
 import { ContainerFilter } from '../components/products/ContainerFilter';
+import { ReservationModal } from '../components/products/ReservationModal';
 import { useAuth } from '../hooks/useAuth';
 import { fetchBooks } from '../services/bookService';
 import { PDFViewer } from '../components/products/PDFViewer';
 import { registerBookReservation } from '../services/bookService';
+import { supabase } from '../supabase/client';
 
 export const BookPages = () => {
   const { isAuthenticated, isConfigured, user } = useAuth();
@@ -25,6 +27,9 @@ export const BookPages = () => {
   const [userChangedSpeciality, setUserChangedSpeciality] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
   const [reservationMessage, setReservationMessage] = useState<string | null>(null);
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [selectedBookForReservation, setSelectedBookForReservation] = useState<PreparedBook | null>(null);
+  const [userActiveOrders, setUserActiveOrders] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -40,6 +45,30 @@ export const BookPages = () => {
     };
     loadBooks();
   }, []);
+
+  // Cargar órdenes activas del usuario
+  useEffect(() => {
+    const loadUserActiveOrders = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const { data: ordenesActivas } = await supabase
+          .from('ordenes')
+          .select('libro_id')
+          .eq('usuario_id', user.id)
+          .in('estado', ['Pendiente de buscar', 'Prestado', 'Moroso']);
+        
+        if (ordenesActivas) {
+          const libroIds = new Set(ordenesActivas.map(orden => orden.libro_id).filter((id): id is number => id !== null));
+          setUserActiveOrders(libroIds);
+        }
+      } catch (error) {
+        console.error('Error al cargar órdenes activas:', error);
+      }
+    };
+    
+    loadUserActiveOrders();
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     // Mostrar en consola los dos arreglos filtrados
@@ -167,7 +196,7 @@ export const BookPages = () => {
   };
 
   // Handler para reservar libro físico
-  const handleReserve = async (book: PreparedBook) => {
+  const handleReserve = (book: PreparedBook) => {
     if (!isAuthenticated || !user) {
       setReservationMessage('Debes iniciar sesión para reservar un libro.');
       return;
@@ -176,13 +205,54 @@ export const BookPages = () => {
       setReservationMessage('Usted se encuentra bloqueado por morosidad. Por favor, entregue el libro pendiente lo antes posible para restablecer el acceso.');
       return;
     }
+    
+    // Abrir modal de confirmación
+    setSelectedBookForReservation(book);
+    setIsReservationModalOpen(true);
+  };
+
+  // Función para verificar si el usuario ya tiene una orden activa para un libro
+  const checkUserHasActiveOrder = async (libroId: number): Promise<boolean> => {
+    if (!user) return false;
+    
     try {
-      await registerBookReservation({ libro_id: Number(book.id), usuario_id: user.id });
-      setReservationMessage('¡Reserva realizada con éxito!');
-    } catch (err) {
-      setReservationMessage('Error al realizar la reserva.');
+      const { data: ordenesActivas } = await supabase
+        .from('ordenes')
+        .select('id, estado')
+        .eq('usuario_id', user.id)
+        .eq('libro_id', libroId)
+        .in('estado', ['Pendiente de buscar', 'Prestado', 'Moroso']);
+      
+      return Boolean(ordenesActivas && ordenesActivas.length > 0);
+    } catch (error) {
+      console.error('Error al verificar órdenes activas:', error);
+      return false;
     }
-    setTimeout(() => setReservationMessage(null), 2500);
+  };
+
+  const handleConfirmReservation = async () => {
+    if (!selectedBookForReservation || !user) return;
+    
+    try {
+      await registerBookReservation({ 
+        libro_id: Number(selectedBookForReservation.id), 
+        usuario_id: user.id 
+      });
+      setReservationMessage('¡Reserva realizada con éxito!');
+      
+      // Recargar los libros para actualizar las cantidades
+      const updatedBooks = await fetchBooks();
+      setBooks(updatedBooks);
+      
+      // Actualizar órdenes activas del usuario
+      setUserActiveOrders(prev => new Set([...prev, selectedBookForReservation.id]));
+      
+    } catch (err: any) {
+      // Mostrar mensaje de error específico
+      const errorMessage = err.message || 'Error al realizar la reserva.';
+      setReservationMessage(errorMessage);
+    }
+    setTimeout(() => setReservationMessage(null), 4000); // Más tiempo para leer el mensaje
   };
 
   return (
@@ -254,6 +324,8 @@ export const BookPages = () => {
                       type={book.type}
                       fragment={book.fragment}
                       fileUrl={book.fileUrl}
+                      cantidadDisponible={book.cantidadDisponible}
+                      hasActiveOrder={userActiveOrders.has(book.id)}
                       onViewDetails={() => {
                         setSelectedBook(book);
                         setIsModalOpen(true);
@@ -311,6 +383,17 @@ export const BookPages = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal de Confirmación de Reserva */}
+      <ReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => {
+          setIsReservationModalOpen(false);
+          setSelectedBookForReservation(null);
+        }}
+        onConfirm={handleConfirmReservation}
+        bookTitle={selectedBookForReservation?.title || ''}
+      />
     </>
   );
 }

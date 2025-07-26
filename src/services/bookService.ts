@@ -26,7 +26,10 @@ export const fetchBooks = async () => {
     }
     // Obtener cantidad disponible de libros físicos (si aplica)
     let cantidadDisponible = undefined;
+    
     if (book.tipo === 'Físico' && book.libros_fisicos && book.libros_fisicos.length > 0) {
+      cantidadDisponible = book.libros_fisicos[0].cantidad;
+    } else if (book.tipo === 'Fisico' && book.libros_fisicos && book.libros_fisicos.length > 0) {
       cantidadDisponible = book.libros_fisicos[0].cantidad;
     }
     return {
@@ -55,21 +58,78 @@ export const fetchBooks = async () => {
 };
 
 export const registerBookReservation = async ({ libro_id, usuario_id }: { libro_id: number, usuario_id: number }) => {
-  // Fecha actual en formato ISO
-  const fechaPedido = new Date().toISOString();
-  const reservaObj = {
-    libro_id,
-    usuario_id,
-    tipo_de_libro: 'Físico',
-    "fecha _pedido": fechaPedido,
-    fecha_inicio: null,
-    fecha_fin: null,
-    estado: 'pendiente',
-  };
-  console.log('[Reserva] Objeto enviado a Supabase:', reservaObj);
-  const { data, error } = await supabase
-    .from('reservas')
-    .insert(reservaObj as any);
-  if (error) throw error;
-  return data;
+  try {
+    // 1. Verificar que el usuario no esté moroso
+    const { data: usuario, error: userError } = await supabase
+      .from('usuarios')
+      .select('estado')
+      .eq('id', usuario_id)
+      .single();
+      
+    if (userError) {
+      throw new Error('Error al verificar el estado del usuario');
+    }
+    
+    if (usuario?.estado === 'Moroso') {
+      throw new Error('Usted se encuentra bloqueado por morosidad. No puede realizar reservas.');
+    }
+
+    // 2. Verificar stock disponible
+    const { data: libroFisico, error: stockError } = await supabase
+      .from('libros_fisicos')
+      .select('cantidad')
+      .eq('libro_id', libro_id)
+      .single();
+      
+    if (stockError) {
+      throw new Error('Error al verificar disponibilidad del libro');
+    }
+    
+    if (!libroFisico || libroFisico.cantidad <= 0) {
+      throw new Error('No hay ejemplares disponibles en este momento');
+    }
+
+    // 3. Verificar que no tenga una orden activa para el mismo libro
+    const { data: ordenesExistentes, error: ordenError } = await supabase
+      .from('ordenes')
+      .select('id, estado')
+      .eq('usuario_id', usuario_id)
+      .eq('libro_id', libro_id)
+      .in('estado', ['Pendiente de buscar', 'Prestado', 'Moroso']);
+      
+    if (ordenError) {
+      throw new Error('Error al verificar órdenes existentes');
+    }
+    
+    if (ordenesExistentes && ordenesExistentes.length > 0) {
+      const ordenActiva = ordenesExistentes[0];
+      throw new Error(`Ya tiene una orden activa para este libro (Estado: ${ordenActiva.estado}). Debe completar o cancelar la orden anterior antes de reservar nuevamente.`);
+    }
+
+    // 4. Crear la orden (el trigger automáticamente reducirá el stock y establecerá fechas límite)
+    const fechaReserva = new Date().toISOString();
+    const ordenObj = {
+      libro_id,
+      usuario_id,
+      estado: 'Pendiente de buscar',
+      fecha_reserva: fechaReserva,
+      fecha_entrega: null,
+      fecha_devolucion: null,
+      fecha_limite_busqueda: null, // Se establecerá automáticamente con el trigger
+      fecha_limite_devolucion: null,
+    };
+    
+    const { data, error } = await supabase
+      .from('ordenes')
+      .insert(ordenObj);
+      
+    if (error) {
+      throw new Error('Error al crear la orden de reserva');
+    }
+    
+    return data;
+    
+  } catch (error) {
+    throw error;
+  }
 }; 

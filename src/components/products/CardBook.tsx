@@ -15,9 +15,10 @@ interface Props {
 	onShowDetails?: () => void; // Ver detalles
 	onReserve?: () => void; // Reservar libro físico
 	cantidadDisponible?: number; // Cantidad de ejemplares físicos disponibles
+	hasActiveOrder?: boolean; // Si el usuario ya tiene una orden activa para este libro
 }
 
-export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails, onShowDetails, onReserve, cantidadDisponible }: Props) => {
+export const CardBook = ({ img, title, authors, slug, speciality, type, fragment, fileUrl, onViewDetails, onShowDetails, onReserve, cantidadDisponible, hasActiveOrder = false }: Props) => {
 	const [showNoPdf, setShowNoPdf] = useState(false);
 	let hideTimeout: NodeJS.Timeout;
 
@@ -31,8 +32,10 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 			.trim();
 	}
 
-	const isFisico = normalizeType(type) === 'fisico';
-	const noDisponibles = isFisico && (cantidadDisponible === 0 || cantidadDisponible === undefined);
+	const isFisico = type === 'Fisico' || type === 'Físico';
+	const noDisponibles = isFisico && (cantidadDisponible === 0 || cantidadDisponible === undefined || cantidadDisponible < 0);
+	const yaTieneOrden = isFisico && hasActiveOrder;
+	const botonDeshabilitado = noDisponibles || yaTieneOrden;
 
 	return (
 		<div className='flex flex-col gap-6 relative border p-4 rounded-lg shadow-md'>
@@ -81,14 +84,17 @@ export const CardBook = ({ img, title, authors, slug, speciality, type, fragment
 					{isFisico && (
 						<>
 							<button
-								className={`bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-xs font-medium w-full mt-2 ${noDisponibles ? 'opacity-50 cursor-not-allowed' : ''}`}
+								className={`bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-xs font-medium w-full mt-2 ${botonDeshabilitado ? 'opacity-50 cursor-not-allowed' : ''}`}
 								onClick={onReserve}
-								disabled={noDisponibles}
+								disabled={botonDeshabilitado}
 							>
-								Reservar
+								{yaTieneOrden ? 'Ya Reservado' : 'Reservar'}
 							</button>
 							{noDisponibles && (
 								<p className='text-xs text-red-600 mt-1 text-center'>No hay ejemplares disponibles en este momento.</p>
+							)}
+							{yaTieneOrden && (
+								<p className='text-xs text-orange-600 mt-1 text-center'>Ya tienes una orden activa para este libro.</p>
 							)}
 						</>
 					)}

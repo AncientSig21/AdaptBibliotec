@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import { Brands } from '../components/home/Brands';
 import { FeatureGrid } from '../components/home/FeatureGrid';
 import { BookGrid } from '../components/home/BookGrid';
-import {
-	allBooks,
-} from '../data/initialData';
 import { fetchBooks } from '../services/bookService';
 import { PreparedBook } from '../interfaces';
 

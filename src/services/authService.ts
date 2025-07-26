@@ -68,9 +68,15 @@ export const authService = {
     }
 
     try {
+      // Agregar estado por defecto 'Activo' al registrar
+      const userDataWithEstado = {
+        ...userData,
+        estado: 'Activo' // Establecer estado por defecto
+      };
+
       const { data, error } = await supabase
         .from('usuarios')
-        .insert([userData])
+        .insert([userDataWithEstado])
         .select('id, nombre, correo, escuela, rol, estado')
         .single();
 

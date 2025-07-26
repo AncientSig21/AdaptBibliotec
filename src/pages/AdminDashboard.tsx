@@ -2,9 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { FaChartBar, FaBook, FaFileAlt, FaAngleDoubleLeft, FaAngleDoubleRight, FaBars } from 'react-icons/fa';
 import React, { useEffect, useState } from 'react';
 
-// Modo demo: simular notificaciones
 
-const DEMO_MODE = true;
 
 export default function AdminLayout() {
   // Estado global para notificaciones en modo demo
@@ -18,7 +16,7 @@ export default function AdminLayout() {
   const adminLinks = [
     { to: '/admin', label: 'Estadísticas', icon: <FaChartBar />, end: true },
     { to: '/admin/libros', label: 'Libros', icon: <FaBook /> },
-    { to: '/admin/reportes', label: 'Reportes', icon: <FaFileAlt />, notis: DEMO_MODE ? { morosos: morososCount, pendientes: pendientesCount } : undefined },
+    { to: '/admin/reportes', label: 'Reportes', icon: <FaFileAlt />, notis: { morosos: morososCount, pendientes: pendientesCount } },
   ];
 
   const [collapsed, setCollapsed] = useState(false);
@@ -106,8 +104,8 @@ export default function AdminLayout() {
       )}
       {/* Contenido */}
       <main className="flex-1 p-2 sm:p-4 md:p-8 transition-all duration-300">
-        {/* Pasar funciones de actualización como contexto o props en modo demo */}
-        <Outlet context={DEMO_MODE ? { handleMorosoDesbloqueado, handlePedidoRespondido } : {}} />
+        {/* Pasar funciones de actualización como contexto */}
+        <Outlet context={{ handleMorosoDesbloqueado, handlePedidoRespondido }} />
       </main>
     </div>
   );

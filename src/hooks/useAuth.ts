@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authService, User, LoginData, RegisterData } from '../services/authService';
+import { supabase } from '../supabase/client';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -148,6 +149,32 @@ export const useAuth = () => {
     setError(null);
   };
 
+  // Función para verificar si el usuario está moroso
+  const isUserMoroso = () => {
+    return user?.estado === 'Moroso';
+  };
+
+  // Función para actualizar el estado del usuario desde la base de datos
+  const refreshUserStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('estado')
+        .eq('id', user.id)
+        .single();
+        
+      if (!error && data) {
+        const updatedUser = { ...user, estado: data.estado };
+        authService.setCurrentUser(updatedUser);
+        setUser(updatedUser);
+      }
+    } catch (err) {
+      console.error('Error al actualizar estado del usuario:', err);
+    }
+  };
+
   return {
     user,
     loading,
@@ -157,6 +184,8 @@ export const useAuth = () => {
     logout,
     clearError,
     isAuthenticated: !!user,
-    isConfigured
+    isConfigured,
+    isUserMoroso,
+    refreshUserStatus,
   };
 }; 
